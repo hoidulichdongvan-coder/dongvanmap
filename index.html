@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dong Van Map - Business Edition</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        .leaflet-div-icon { background: transparent !important; border: none !important; }
+
+        /* --- MARKER LEVELS --- */
+        .marker-tiny { width: 8px; height: 8px; background: #94a3b8; border-radius: 50%; border: 1px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+        
+        .pin-small { 
+            width: 20px; height: 20px; background: #334155; border: 2px solid white; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-size: 10px;
+        }
+
+        .pin-standard { 
+            position: relative; width: 28px; height: 33px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 100%; transition: transform 0.2s;
+        }
+        .pin-standard .body {
+            width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 2px solid #fbbf24; background: #1a1a1a; position: relative; z-index: 2; box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+        }
+        .pin-standard .body::after {
+            content: ''; position: absolute; bottom: -5px; border-left: 5px solid transparent; border-right: 5px solid transparent; 
+            border-top: 5px solid #fbbf24; left: 50%; transform: translateX(-50%);
+        }
+
+        .pin-vip { 
+            position: relative; width: 36px; height: 42px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 100%; z-index: 1000 !important;
+            animation: float 3s ease-in-out infinite;
+        }
+        .pin-vip .body {
+            width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 2px solid #fbbf24; background: #000; position: relative; z-index: 2; 
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.8), inset 0 0 10px rgba(251, 191, 36, 0.3);
+        }
+        .pin-vip .body::before { content: '👑'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 12px; }
+        .pin-vip .body::after {
+            content: ''; position: absolute; bottom: -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; 
+            border-top: 6px solid #fbbf24; left: 50%; transform: translateX(-50%);
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+        /* --- USER LOCATION PULSING DOT (NEW) --- */
+        .user-marker-container { position: relative; width: 20px; height: 20px; }
+        .user-dot { 
+            width: 14px; height: 14px; background: #3b82f6; border: 2px solid white; border-radius: 50%; 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            z-index: 2; box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        .user-pulse { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            width: 40px; height: 40px; background: rgba(59, 130, 246, 0.4); border-radius: 50%; 
+            z-index: 1; animation: pulse-blue 2s infinite; pointer-events: none;
+        }
+        @keyframes pulse-blue { 
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.8; } 
+            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } 
+        }
+
+        /* --- COMMON STYLES --- */
+        .marker-avatar { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .pulsing-dot { position: absolute; width: 6px; height: 6px; background: #ef4444; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red { 0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.7; } 70% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } }
+        
+        /* --- SNAKE ROAD ANIMATION --- */
+        .snake-road-path {
+            stroke-dasharray: 12, 24; /* Tăng khoảng cách dash để giảm tải render */
+            animation: snakeFlow 1s linear infinite;
+            will-change: stroke-dashoffset; /* Hint cho trình duyệt tối ưu render */
+        }
+        @keyframes snakeFlow {
+            from { stroke-dashoffset: 36; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* --- UI UTILS --- */
+        .glass-panel { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .hidden { display: none !important; }
+        .slide-up { animation: slideUp 0.3s ease-out forwards; }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .text-gold { background: linear-gradient(to right, #fcd34d, #f59e0b, #fcd34d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .luxury-border { border: 1px solid #eab308; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .tag-btn.active { background: #eab308; color: black; border-color: #eab308; font-weight: bold; }
+
+        /* --- BUTTON VIỀN VÀNG CHẠY (GUIDE BTN) --- */
+        .guide-btn { position: relative; overflow: hidden; transition: all 0.3s; }
+        .guide-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #fbbf24); animation: btn-border-top 2s linear infinite;
+        }
+        .guide-btn::after {
+            content: ''; position: absolute; bottom: 0; right: -100%; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #fbbf24); animation: btn-border-bottom 2s linear infinite;
+        }
+        @keyframes btn-border-top { 0% { left: -100%; } 50%, 100% { left: 100%; } }
+        @keyframes btn-border-bottom { 0% { right: 100%; } 50%, 100% { right: -100%; } }
+    </style>
+</head>
+<body class="bg-gray-900 overflow-hidden text-white font-sans">
+
+    <div id="map" class="absolute inset-0 z-0 bg-gray-900"></div>
+
+    <div class="absolute top-0 left-0 right-0 z-[1000] pointer-events-none flex flex-col gap-2">
+        <div class="p-4 pb-0 flex justify-between items-start">
+            <div class="pointer-events-auto glass-panel px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg border-b border-yellow-500/50">
+                <span class="text-lg animate-pulse">⛰️</span>
+                <div>
+                    <div class="text-[9px] text-gray-400 uppercase tracking-widest">Đồng Văn</div>
+                    <div class="text-orange-400 font-bold text-xs" id="user-points">0 PTS</div>
+                </div>
+            </div>
+            <div class="flex gap-2 pointer-events-auto">
+                <button onclick="window.toggleGPS()" id="btn-gps" class="w-9 h-9 glass-panel rounded-full flex items-center justify-center text-gray-300 shadow-lg active:scale-95 transition-all border border-white/10"><i data-lucide="locate" width="18"></i></button>
+                <button onclick="window.clearRoute()" id="btn-clear-route" class="hidden w-9 h-9 glass-panel bg-red-900/50 rounded-full flex items-center justify-center text-red-400 shadow-lg active:scale-95 transition-all border border-red-500/30"><i data-lucide="trash-2" width="18"></i></button>
+                <button onclick="window.openRewards()" class="w-9 h-9 glass-panel rounded-full flex items-center justify-center text-orange-400 shadow-lg active:scale-95 transition-all border border-white/10"><i data-lucide="gift" width="18"></i></button>
+            </div>
+        </div>
+
+        <div class="flex gap-2 pointer-events-auto justify-center px-4 overflow-x-auto hide-scrollbar">
+            <button onclick="window.loadItinerary()" class="guide-btn glass-panel px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-lg active:scale-95 border border-yellow-500/20 shrink-0">
+                <i data-lucide="map" class="text-blue-400" width="14"></i>
+                <span class="text-[10px] font-bold uppercase text-blue-100">Du lịch</span>
+            </button>
+            <button onclick="window.openCategory('food')" class="guide-btn glass-panel px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-lg active:scale-95 border border-yellow-500/20 shrink-0">
+                <i data-lucide="utensils" class="text-red-400" width="14"></i>
+                <span class="text-[10px] font-bold uppercase text-red-100">Ẩm thực</span>
+            </button>
+            <button onclick="window.openCategory('hotel')" class="guide-btn glass-panel px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-lg active:scale-95 border border-yellow-500/20 shrink-0">
+                <i data-lucide="bed" class="text-purple-400" width="14"></i>
+                <span class="text-[10px] font-bold uppercase text-purple-100">Lưu trú</span>
+            </button>
+        </div>
+        <div id="filter-bar" class="hidden pointer-events-auto px-4">
+            <div class="glass-panel p-2 rounded-lg flex gap-2 overflow-x-auto hide-scrollbar border-t border-yellow-500/30" id="filter-tags">
+                </div>
+            <button onclick="closeFilter()" class="mx-auto mt-1 bg-black/50 text-[9px] px-2 py-0.5 rounded-full text-gray-400 flex items-center gap-1 hover:text-white"><i data-lucide="x" width="8"></i> Đóng lọc</button>
+        </div>
+    </div>
+
+    <div id="route-loader" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[4000] bg-black/80 px-4 py-3 rounded-xl flex flex-col items-center hidden backdrop-blur">
+        <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mb-2"></div>
+        <span class="text-[10px] uppercase text-yellow-500 font-bold">Đang tìm đường...</span>
+    </div>
+
+    <div id="popup-detail" class="absolute bottom-4 left-3 right-3 z-[2000] pointer-events-none flex justify-center hidden">
+        <div class="w-full max-w-sm bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl pointer-events-auto slide-up overflow-hidden flex flex-col max-h-[50vh] luxury-border">
+            
+            <div class="relative shrink-0 h-32 w-full bg-black overflow-hidden">
+                <img id="loc-img" src="" class="w-full h-full object-cover"/>
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+                <button onclick="window.closePopup()" class="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full hover:bg-black/80 transition-colors backdrop-blur-sm">
+                    <i data-lucide="x" width="14"></i>
+                </button>
+                <div id="vip-badge" class="hidden absolute top-2 left-2 bg-yellow-400 text-black text-[9px] font-bold px-1.5 py-0.5 rounded shadow-lg flex items-center gap-1">
+                    <i data-lucide="crown" width="10"></i> ĐỐI TÁC VIP
+                </div>
+            </div>
+
+            <div class="flex flex-col pt-2 px-4 pb-3 overflow-y-auto custom-scrollbar">
+                <h3 id="loc-name" class="text-lg font-black text-gold uppercase tracking-wide leading-tight mb-0.5">---</h3>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex gap-1.5 text-slate-400 text-[10px] items-center">
+                        <i data-lucide="map-pin" class="text-red-500 shrink-0" width="10"></i> 
+                        <span id="loc-address" class="line-clamp-1">---</span>
+                    </div>
+                </div>
+
+                <div id="route-info" class="flex gap-2 mb-2 bg-slate-800/80 p-1.5 rounded border border-yellow-500/20 hidden">
+                    <div class="flex-1 flex flex-col items-center border-r border-white/10">
+                        <span class="text-[9px] text-gray-400 uppercase">Khoảng cách</span>
+                        <span id="loc-distance" class="text-yellow-400 font-bold text-xs">...</span>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center">
+                        <span class="text-[9px] text-gray-400 uppercase">Thời gian</span>
+                        <span id="loc-duration" class="text-yellow-400 font-bold text-xs">...</span>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                     <button id="btn-main-contact" class="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-md font-bold text-[12px] flex items-center justify-center gap-2 shadow active:scale-95 transition border border-green-400">
+                        <i data-lucide="phone-call" width="16"></i> LIÊN HỆ NGAY
+                    </button>
+                </div>
+
+                <div class="flex gap-2 mb-2">
+                    <button onclick="window.fitRoute()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-1.5 rounded-md font-bold text-[10px] flex items-center justify-center gap-1 shadow active:scale-95 border border-white/10">
+                        <i data-lucide="map" width="12"></i> XEM TOÀN BỘ ĐƯỜNG
+                    </button>
+                    <button onclick="window.checkIn()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-1.5 rounded-md font-bold text-[10px] flex items-center justify-center gap-1 shadow active:scale-95 border border-white/10">
+                        <i data-lucide="scan" width="12"></i> CHECK-IN
+                    </button>
+                </div>
+
+                <p id="loc-desc" class="text-xs text-gray-300 mb-2 text-justify leading-snug border-l-2 border-yellow-500/50 pl-2 opacity-90">---</p>
+                <div id="service-box" class="bg-slate-800/50 p-2 rounded border border-yellow-500/10">
+                    <div id="loc-menu" class="space-y-1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modal-contact-choice" class="fixed inset-0 z-[6000] bg-black/90 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-yellow-500/50 rounded-xl p-4 w-full max-w-xs text-center shadow-2xl slide-up">
+            <h3 class="text-gold font-bold text-sm uppercase mb-4 tracking-wider">Chọn cách liên hệ</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <button id="btn-choice-call" class="bg-green-600 hover:bg-green-500 text-white py-3 rounded-lg font-bold text-xs flex flex-col items-center gap-1 active:scale-95 transition">
+                    <i data-lucide="phone" width="20"></i> Gọi trực tiếp
+                </button>
+                <button id="btn-choice-zalo" class="bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-bold text-xs flex flex-col items-center gap-1 active:scale-95 transition">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Icon_of_Zalo.svg/1200px-Icon_of_Zalo.svg.png" width="20" class="rounded bg-white p-0.5"> 
+                    Chat Zalo
+                </button>
+            </div>
+            <button onclick="window.closeContactModal()" class="mt-4 text-gray-400 text-[10px] hover:text-white border-b border-transparent hover:border-gray-400 transition">Đóng</button>
+        </div>
+    </div>
+
+    <div id="modal-rewards" class="fixed inset-0 z-[3000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-sm glass-panel rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh] luxury-border">
+            <div class="bg-slate-800 p-3 text-center border-b border-white/10 relative">
+                <button onclick="window.closeRewards()" class="absolute top-3 right-3 text-slate-500 hover:text-white"><i data-lucide="x" width="18"></i></button>
+                <h2 class="text-base font-bold text-gold uppercase">Kho Quà</h2>
+            </div>
+            <div class="p-4 space-y-2 overflow-y-auto" id="rewards-list"></div>
+        </div>
+    </div>
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-4 py-2 rounded-full shadow-xl z-[4000] font-bold text-xs border border-yellow-500 hidden whitespace-nowrap flex items-center gap-2">
+        <i data-lucide="bell" width="14" class="text-yellow-500"></i> <span id="toast-msg">...</span>
+    </div>
+
+    <script type="module">
+        const firebaseConfig = { apiKey: "AIzaSyAupPfv0VdxqpFiVFlw5IhMSHIMcR-EiGg", authDomain: "dongvanmap.firebaseapp.com", projectId: "dongvanmap", storageBucket: "dongvanmap.firebasestorage.app", messagingSenderId: "453876053390", appId: "1:453876053390:web:f96ee558f6f9fede1ee0df" };
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        let map, userMarker, watchId, snakeLayers = [], markersLayer = [];
+        let userPos = { lat: 23.27833, lng: 105.36154 }; 
+        let locations = [], isTracking = false;
+        
+        let currentFilterType = null; 
+        let currentFilterTag = null;
+        let lastMapUpdatePos = null; 
+        const MIN_UPDATE_DISTANCE = 15; 
+        const CACHE_KEY = 'dongvan_locations_v6_business';
+
+        let db; 
+
+        window.addEventListener('load', () => {
+            initMap();
+            loadDataSmart();
+            startGPS();
+        });
+
+        function initMap() {
+            if(document.getElementById('map')._leaflet_id) return;
+            map = L.map('map', { zoomControl: false, tap: false }).setView([userPos.lat, userPos.lng], 16);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
+
+            // --- UPDATED: BLUE DOT MARKER ---
+            const uIcon = L.divIcon({ 
+                className: '', 
+                html: '<div class="user-marker-container"><div class="user-pulse"></div><div class="user-dot"></div></div>',
+                iconSize: [20, 20], 
+                iconAnchor: [10, 10] 
+            });
+            userMarker = L.marker([userPos.lat, userPos.lng], { icon: uIcon, zIndexOffset: 2000 }).addTo(map);
+
+            map.on('dragstart', () => { if(isTracking) disableTracking("Đã tắt tự động theo dõi"); });
+            map.on('click', () => { window.closePopup(); window.closeContactModal(); }); 
+            
+            lucide.createIcons();
+        }
+
+        function startGPS() {
+            if (!navigator.geolocation) return;
+            const geoOptions = { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 };
+            watchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    userPos = { lat: latitude, lng: longitude };
+                    if(userMarker) userMarker.setLatLng([latitude, longitude]);
+                    if (isTracking && map) {
+                        if (!lastMapUpdatePos) {
+                            map.flyTo([latitude, longitude], 17, { animate: true, duration: 1.5 });
+                            lastMapUpdatePos = userPos;
+                        } else {
+                            const dist = map.distance([lastMapUpdatePos.lat, lastMapUpdatePos.lng], [latitude, longitude]);
+                            if (dist > MIN_UPDATE_DISTANCE) {
+                                map.panTo([latitude, longitude], { animate: true, duration: 0.5 });
+                                lastMapUpdatePos = userPos;
+                            }
+                        }
+                    }
+                },
+                (err) => console.warn("GPS Waiting...", err),
+                geoOptions
+            );
+        }
+
+        async function loadDataSmart() {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) { try { locations = JSON.parse(cached); renderMarkers(); } catch(e) {} }
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                const locSnap = await getDocs(collection(db, "locations"));
+                if (!locSnap.empty) {
+                    locations = locSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderMarkers();
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(locations));
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function renderMarkers() {
+            markersLayer.forEach(m => map.removeLayer(m));
+            markersLayer = [];
+
+            locations.forEach(loc => {
+                if (currentFilterType && loc.type !== currentFilterType) return;
+                if (currentFilterTag && (!loc.tags || !loc.tags.includes(currentFilterTag))) return;
+
+                const score = loc.score || 0;
+                let icon;
+
+                if (loc.type === 'checkin') {
+                     let innerContent = loc.image ? `<img src="${loc.image}" class="marker-avatar">` : '📸';
+                     const html = `<div class="pin-standard"><div class="body">${innerContent}</div><div class="pin-shadow"></div></div>`;
+                    icon = L.divIcon({ className: '', html: html, iconSize: [28, 33], iconAnchor: [14, 33] });
+                } else {
+                    if (score <= 0) return;
+                    if (score < 100) {
+                        icon = L.divIcon({ className: 'marker-tiny', iconSize: [8, 8], iconAnchor: [4, 4] });
+                    } else if (score < 500) {
+                        const emojiMap = { 'food': '🍜', 'hotel': '🛏️', 'cafe': '☕', 'shopping': '🛍️' };
+                        const html = `<div class="pin-small">${emojiMap[loc.type] || '📍'}</div>`;
+                        icon = L.divIcon({ className: '', html: html, iconSize: [20, 20], iconAnchor: [10, 10] });
+                    } else if (score < 1000) {
+                        let innerContent = loc.image ? `<img src="${loc.image}" class="marker-avatar">` : '📍';
+                        const html = `<div class="pin-standard"><div class="body">${innerContent}</div><div class="pin-shadow"></div></div>`;
+                        icon = L.divIcon({ className: '', html: html, iconSize: [28, 33], iconAnchor: [14, 33] });
+                    } else {
+                        let innerContent = loc.image ? `<img src="${loc.image}" class="marker-avatar">` : '👑';
+                        const html = `<div class="pin-vip"><div class="body">${innerContent}<div class="pulsing-dot"></div></div><div class="pin-shadow"></div></div>`;
+                        icon = L.divIcon({ className: '', html: html, iconSize: [36, 42], iconAnchor: [18, 42] });
+                    }
+                }
+
+                const marker = L.marker([loc.lat, loc.lng], { icon: icon }).addTo(map);
+                marker.on('click', (e) => { 
+                    L.DomEvent.stopPropagation(e);
+                    openPopup(loc); 
+                });
+                markersLayer.push(marker);
+            });
+        }
+
+        window.openPopup = function(loc) {
+            window.clearRoute(); 
+
+            const p = document.getElementById('popup-detail');
+            p.classList.remove('hidden', 'slide-up');
+            void p.offsetWidth; p.classList.add('slide-up');
+
+            document.getElementById('loc-name').innerText = loc.name;
+            document.getElementById('loc-address').innerText = loc.address || "Đồng Văn, Hà Giang";
+            document.getElementById('loc-desc').innerText = loc.desc || "Đang cập nhật...";
+            document.getElementById('loc-img').src = loc.image || "https://via.placeholder.com/400x200";
+            document.getElementById('loc-menu').innerHTML = (loc.menu || []).slice(0,3).map(i => `<div class="text-[10px] text-slate-300 border-b border-white/5 py-0.5 pl-1">• ${i}</div>`).join('');
+            
+            const vipBadge = document.getElementById('vip-badge');
+            if ((loc.score || 0) >= 1000) vipBadge.classList.remove('hidden'); else vipBadge.classList.add('hidden');
+
+            const btnMain = document.getElementById('btn-main-contact');
+            if (loc.phone) {
+                btnMain.classList.remove('hidden');
+                btnMain.onclick = () => window.openContactModal(loc);
+            } else {
+                btnMain.classList.add('hidden');
+            }
+
+            const targetLat = loc.lat - 0.0020; 
+            map.flyTo([targetLat, loc.lng], 17, { duration: 1 });
+            
+            drawRoadSnake(userPos, {lat: loc.lat, lng: loc.lng});
+        }
+        // --- HÀM VẼ ĐƯỜNG RẮN BÒ & TÍNH TOÁN (ĐÃ TỐI ƯU SỬA LỖI LAG/NHẤP NHÁY) ---
+        async function drawRoadSnake(start, end) {
+            const loader = document.getElementById('route-loader'); 
+            loader.classList.remove('hidden');
+            
+            const routeInfoBox = document.getElementById('route-info');
+            
+            try {
+                // Gọi API OSRM để lấy geometry và thông tin duration/distance
+                const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`);
+                const data = await response.json();
+
+                if (!data.routes || data.routes.length === 0) throw new Error("No route");
+
+                const route = data.routes[0];
+                const geometry = route.geometry.coordinates.map(c => [c[1], c[0]]);
+                
+                // --- CẬP NHẬT GIAO DIỆN KHOẢNG CÁCH / THỜI GIAN ---
+                const distMeters = route.distance; 
+                const durationSeconds = route.duration;
+                
+                const distText = distMeters > 1000 ? (distMeters/1000).toFixed(1) + " km" : Math.round(distMeters) + " m";
+                const durText = Math.ceil(durationSeconds / 60) + " phút";
+
+                document.getElementById('loc-distance').innerText = distText;
+                document.getElementById('loc-duration').innerText = durText;
+                routeInfoBox.classList.remove('hidden'); // Hiện bảng thông tin
+
+                // 1. Vẽ đường nền mờ (Background) - Thêm smoothFactor để giảm tải render
+                const bgLine = L.polyline(geometry, { 
+                    color: '#fbbf24', 
+                    weight: 8, 
+                    opacity: 0.2, 
+                    smoothFactor: 2.0, // FIX: Giảm số lượng điểm vẽ để mượt hơn khi zoom
+                    lineJoin: 'round'
+                }).addTo(map);
+                snakeLayers.push(bgLine);
+
+                // 2. Vẽ đường rắn bò (Animated Snake)
+                const snakeLine = L.polyline(geometry, { 
+                    color: '#fbbf24', 
+                    weight: 4, 
+                    opacity: 1, 
+                    className: 'snake-road-path', 
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                    smoothFactor: 2.0 // FIX: Đồng bộ smoothFactor để tránh lệch đường
+                }).addTo(map);
+                snakeLayers.push(snakeLine);
+
+                // Hiện nút xóa đường
+                document.getElementById('btn-clear-route').classList.remove('hidden');
+
+            } catch (e) { 
+                console.error(e);
+                // Fallback đường thẳng nếu lỗi
+                const line = L.polyline([[start.lat, start.lng], [end.lat, end.lng]], { color: '#fbbf24', dashArray: '5, 10' }).addTo(map);
+                snakeLayers.push(line);
+                document.getElementById('loc-distance').innerText = "...";
+                document.getElementById('loc-duration').innerText = "...";
+            } finally { 
+                loader.classList.add('hidden'); 
+            }
+        }
+
+        // --- XỬ LÝ ĐÓNG POPUP (KHÔNG XÓA ĐƯỜNG) ---
+        window.closePopup = function() { 
+            document.getElementById('popup-detail').classList.add('hidden'); 
+            // Lưu ý: KHÔNG gọi window.clearRoute() ở đây theo yêu cầu
+        }
+
+        // --- HÀM XÓA ĐƯỜNG CHỦ ĐỘNG ---
+        window.clearRoute = function() {
+            snakeLayers.forEach(l => map.removeLayer(l)); 
+            snakeLayers = [];
+            document.getElementById('btn-clear-route').classList.add('hidden');
+        }
+
+        window.openContactModal = function(loc) {
+            const m = document.getElementById('modal-contact-choice');
+            m.classList.remove('hidden'); m.classList.add('flex');
+            document.getElementById('btn-choice-call').onclick = () => { contactBusiness(loc, 'call'); window.closeContactModal(); };
+            document.getElementById('btn-choice-zalo').onclick = () => { contactBusiness(loc, 'zalo'); window.closeContactModal(); };
+        }
+
+        window.closeContactModal = function() {
+            const m = document.getElementById('modal-contact-choice');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+
+        async function contactBusiness(loc, method) {
+            if (method === 'call') window.location.href = `tel:${loc.phone}`;
+            else if (method === 'zalo') {
+                const cleanPhone = loc.phone.replace(/^0/, '84').replace(/\D/g,'');
+                window.open(`https://zalo.me/${cleanPhone}`, '_blank');
+            }
+            if (db && loc.id && loc.type !== 'checkin') {
+                try {
+                    const ref = doc(db, "locations", loc.id);
+                    await updateDoc(ref, { score: increment(-5) });
+                    loc.score -= 5;
+                } catch (e) { console.error(e); }
+            }
+        }
+
+        window.openCategory = function(type) {
+            currentFilterType = type; currentFilterTag = null; renderMarkers();
+            
+            const relatedLocs = locations.filter(l => l.type === type);
+            const allTags = new Set();
+            relatedLocs.forEach(l => { if(l.tags) l.tags.forEach(t => allTags.add(t)); });
+
+            const filterBar = document.getElementById('filter-bar');
+            const filterTags = document.getElementById('filter-tags');
+            
+            if (allTags.size > 0) {
+                filterBar.classList.remove('hidden');
+                let html = `<button onclick="window.filterByTag(null)" class="tag-btn active glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20">Tất cả</button>`;
+                allTags.forEach(tag => {
+                    html += `<button onclick="window.filterByTag('${tag}')" class="tag-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20 text-gray-300 hover:text-white">${tag}</button>`;
+                });
+                filterTags.innerHTML = html;
+            } else { filterBar.classList.add('hidden'); }
+
+            if (relatedLocs.length > 0) {
+                const group = new L.featureGroup(markersLayer);
+                map.fitBounds(group.getBounds(), { padding: [50, 50] });
+            }
+        }
+
+        window.filterByTag = function(tag) {
+            currentFilterTag = tag; renderMarkers();
+            const btns = document.querySelectorAll('.tag-btn');
+            btns.forEach(b => {
+                if ((tag === null && b.innerText === 'Tất cả') || b.innerText === tag) {
+                    b.classList.add('active'); b.classList.remove('text-gray-300');
+                } else {
+                    b.classList.remove('active'); b.classList.add('text-gray-300');
+                }
+            });
+        }
+        
+        window.closeFilter = function() {
+            document.getElementById('filter-bar').classList.add('hidden');
+            currentFilterType = null; currentFilterTag = null; renderMarkers(); map.setZoom(16);
+        }
+
+        window.toggleGPS = function() { isTracking ? disableTracking("Đã tắt theo dõi") : enableTracking(); }
+        function enableTracking() { isTracking = true; lastMapUpdatePos = null; updateGPSBtn(true); map.flyTo([userPos.lat, userPos.lng], 17); showToast("Đang theo dõi vị trí"); }
+        function disableTracking(msg) { isTracking = false; updateGPSBtn(false); if(msg) showToast(msg); }
+        function updateGPSBtn(active) { const btn = document.getElementById('btn-gps'); active ? btn.classList.add('bg-green-600', 'text-white') : btn.classList.remove('bg-green-600', 'text-white'); }
+        
+        window.fitRoute = function() { 
+            if(snakeLayers.length > 0) { 
+                const group = new L.featureGroup(snakeLayers); 
+                group.addLayer(userMarker); // Bao gồm cả vị trí người dùng
+                map.fitBounds(group.getBounds(), { padding: [50, 50] }); 
+            } else {
+                showToast("Chưa có lộ trình"); 
+            }
+        }
+        window.openRewards = function() { document.getElementById('modal-rewards').classList.remove('hidden'); }
+        window.closeRewards = function() { document.getElementById('modal-rewards').classList.add('hidden'); }
+        window.checkIn = function() { showToast("Check-in +10 điểm!"); }
+        window.loadItinerary = function() { window.openCategory('checkin'); showToast("Đang hiển thị điểm tham quan"); }
+        function showToast(msg) { const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = msg; t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000); }
+    </script>
+</body>
+</html>
