@@ -14,15 +14,9 @@
         .leaflet-div-icon { background: transparent !important; border: none !important; }
 
         /* --- MARKER LEVELS --- */
-        .marker-tiny { width: 8px; height: 8px; background: #94a3b8; border-radius: 50%; border: 1px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
-        
-        .pin-small { 
-            width: 20px; height: 20px; background: #334155; border: 2px solid white; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-size: 10px;
-        }
+        /* Đã loại bỏ marker-tiny và pin-small để đồng bộ giao diện ảnh dọc */
 
-        /* --- PIN STANDARD (Dùng cho VIP Business & CHECK-IN DU LỊCH) --- */
-        /* Đảm bảo viền vàng, bo tròn y hệt Tượng đài TNXP */
+        /* --- PIN STANDARD (Dùng cho VIP Business - VIỀN VÀNG) --- */
         .pin-standard { 
             position: relative; width: 28px; height: 33px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 100%; transition: transform 0.2s;
         }
@@ -36,6 +30,22 @@
             border-top: 5px solid #fbbf24; left: 50%; transform: translateX(-50%);
         }
 
+        /* --- PIN CHECKIN (Dùng cho Điểm du lịch - VIỀN ĐỎ) --- */
+        .pin-checkin { 
+            position: relative; width: 28px; height: 33px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 100%; transition: transform 0.2s;
+        }
+        .pin-checkin .body {
+            width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 2px solid #ef4444; /* Viền ĐỎ */
+            background: #1a1a1a; position: relative; z-index: 2; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+        }
+        .pin-checkin .body::after {
+            content: ''; position: absolute; bottom: -5px; border-left: 5px solid transparent; border-right: 5px solid transparent; 
+            border-top: 5px solid #ef4444; /* Mũi tên ĐỎ */
+            left: 50%; transform: translateX(-50%);
+        }
+
+        /* --- PIN VIP (Vương miện - Viền Vàng động) --- */
         .pin-vip { 
             position: relative; width: 36px; height: 42px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 100%; z-index: 1000 !important;
             animation: float 3s ease-in-out infinite;
@@ -239,7 +249,6 @@
     <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-4 py-2 rounded-full shadow-xl z-[4000] font-bold text-xs border border-yellow-500 hidden whitespace-nowrap flex items-center gap-2">
         <i data-lucide="bell" width="14" class="text-yellow-500"></i> <span id="toast-msg">...</span>
     </div>
-
     <script type="module">
         const firebaseConfig = { apiKey: "AIzaSyAupPfv0VdxqpFiVFlw5IhMSHIMcR-EiGg", authDomain: "dongvanmap.firebaseapp.com", projectId: "dongvanmap", storageBucket: "dongvanmap.firebasestorage.app", messagingSenderId: "453876053390", appId: "1:453876053390:web:f96ee558f6f9fede1ee0df" };
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -330,10 +339,10 @@
             locations.forEach(loc => {
                 if (currentFilterType && loc.type !== currentFilterType) return;
                 
-                // --- UPDATE: Lọc theo Tag hoặc theo Tên (nếu là checkin) ---
+                // --- Update logic lọc Tag ---
                 if (currentFilterTag) {
                     if (currentFilterType === 'checkin') {
-                         if (loc.name !== currentFilterTag) return; // Lọc theo tên chính xác cho địa điểm du lịch
+                         if (loc.name !== currentFilterTag) return;
                     } else {
                          if (!loc.tags || !loc.tags.includes(currentFilterTag)) return;
                     }
@@ -342,27 +351,30 @@
                 const score = loc.score || 0;
                 let icon;
 
+                // --- SỬA ĐỔI CHÍNH: ĐỒNG BỘ GIAO DIỆN PIN DỌC ---
                 if (loc.type === 'checkin') {
-                    // --- UPDATE: Giao diện Marker Check-in Viền Vàng Bo Tròn (pin-standard) ---
+                    // 1. Điểm Du Lịch: Dùng class pin-checkin (Viền Đỏ)
                      let innerContent = loc.image ? `<img src="${loc.image}" class="marker-avatar">` : '📸';
-                     const html = `<div class="pin-standard"><div class="body">${innerContent}</div><div class="pin-shadow"></div></div>`;
+                     const html = `<div class="pin-checkin"><div class="body">${innerContent}</div><div class="pin-shadow"></div></div>`;
                      icon = L.divIcon({ className: '', html: html, iconSize: [28, 33], iconAnchor: [14, 33] });
                 } else {
-                    if (score <= 0) return;
-                    if (score < 100) {
-                        icon = L.divIcon({ className: 'marker-tiny', iconSize: [8, 8], iconAnchor: [4, 4] });
-                    } else if (score < 500) {
-                        const emojiMap = { 'food': '🍜', 'hotel': '🛏️', 'cafe': '☕', 'shopping': '🛍️' };
-                        const html = `<div class="pin-small">${emojiMap[loc.type] || '📍'}</div>`;
-                        icon = L.divIcon({ className: '', html: html, iconSize: [20, 20], iconAnchor: [10, 10] });
-                    } else if (score < 1000) {
-                        let innerContent = loc.image ? `<img src="${loc.image}" class="marker-avatar">` : '📍';
-                        const html = `<div class="pin-standard"><div class="body">${innerContent}</div><div class="pin-shadow"></div></div>`;
-                        icon = L.divIcon({ className: '', html: html, iconSize: [28, 33], iconAnchor: [14, 33] });
-                    } else {
+                    // 2. Điểm Dịch Vụ: Dùng class pin-standard (Viền Vàng) hoặc pin-vip
+                    if (score <= 0) return; // Ẩn điểm chưa có điểm tín nhiệm
+
+                    if (score >= 1000) {
+                        // Business VIP
                         let innerContent = loc.image ? `<img src="${loc.image}" class="marker-avatar">` : '👑';
                         const html = `<div class="pin-vip"><div class="body">${innerContent}<div class="pulsing-dot"></div></div><div class="pin-shadow"></div></div>`;
                         icon = L.divIcon({ className: '', html: html, iconSize: [36, 42], iconAnchor: [18, 42] });
+                    } else {
+                        // Business Thường (Đã loại bỏ dot/small markers, chuyển hết về Pin dọc)
+                        // Fallback icon nếu không có ảnh
+                        const emojiMap = { 'food': '🍜', 'hotel': '🛏️', 'cafe': '☕', 'shopping': '🛍️' };
+                        let innerContent = loc.image ? `<img src="${loc.image}" class="marker-avatar">` : (emojiMap[loc.type] || '📍');
+                        
+                        // Dùng pin-standard (Viền Vàng) cho đồng bộ
+                        const html = `<div class="pin-standard"><div class="body">${innerContent}</div><div class="pin-shadow"></div></div>`;
+                        icon = L.divIcon({ className: '', html: html, iconSize: [28, 33], iconAnchor: [14, 33] });
                     }
                 }
 
@@ -386,7 +398,6 @@
             document.getElementById('loc-desc').innerText = loc.desc || "Đang cập nhật...";
             document.getElementById('loc-img').src = loc.image || "https://via.placeholder.com/400x200";
             
-            // Render Menu hoặc thông tin thêm
             const menuHtml = (loc.menu || []).slice(0,3).map(i => `<div class="text-[10px] text-slate-300 border-b border-white/5 py-0.5 pl-1">• ${i}</div>`).join('');
             document.getElementById('loc-menu').innerHTML = menuHtml || '<div class="text-[10px] text-gray-500 italic">Chưa có thông tin dịch vụ</div>';
             
@@ -401,7 +412,6 @@
                 btnMain.classList.add('hidden');
             }
 
-            // Fly to location
             const targetLat = loc.lat - 0.0020; 
             map.flyTo([targetLat, loc.lng], 17, { duration: 1 });
             
@@ -495,7 +505,6 @@
             const relatedLocs = locations.filter(l => l.type === type);
             let filterItems = new Set();
 
-            // --- UPDATE: Nếu là Checkin thì lấy Tên địa điểm làm Tag lọc ---
             if (type === 'checkin') {
                 relatedLocs.forEach(l => filterItems.add(l.name));
             } else {
@@ -522,9 +531,8 @@
 
         window.filterByTag = function(tag) {
             currentFilterTag = tag; 
-            renderMarkers(); // Gọi lại render để lọc trên bản đồ
+            renderMarkers(); 
             
-            // Update UI nút bấm
             const btns = document.querySelectorAll('.tag-btn');
             btns.forEach(b => {
                 if ((tag === null && b.innerText === 'Tất cả') || b.innerText === tag) {
@@ -534,16 +542,13 @@
                 }
             });
 
-            // --- UPDATE: Logic Tự động chỉ đường nếu chọn 1 địa điểm cụ thể (Checkin) ---
             if (tag && currentFilterType === 'checkin') {
-                // Tìm địa điểm có tên trùng với tag
                 const targetLoc = locations.find(l => l.name === tag && l.type === 'checkin');
                 if (targetLoc) {
-                    openPopup(targetLoc); // Tự động mở popup và chỉ đường
+                    openPopup(targetLoc); 
                     showToast(`Đang dẫn đường tới: ${targetLoc.name}`);
                 }
             } else if (tag) {
-                // Logic cũ cho các danh mục khác (Zoom vào nhóm)
                 const group = new L.featureGroup(markersLayer);
                 if (markersLayer.length > 0) map.fitBounds(group.getBounds(), { padding: [50, 50] });
             }
