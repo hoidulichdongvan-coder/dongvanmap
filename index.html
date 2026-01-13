@@ -14,7 +14,6 @@
         .leaflet-div-icon { background: transparent !important; border: none !important; }
 
         /* --- MARKER LEVELS --- */
-        /* Đã loại bỏ marker-tiny và pin-small để đồng bộ giao diện ảnh dọc */
 
         /* --- PIN STANDARD (Dùng cho VIP Business - VIỀN VÀNG) --- */
         .pin-standard { 
@@ -24,6 +23,7 @@
             width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             border: 2px solid #fbbf24; /* Viền vàng */
             background: #1a1a1a; position: relative; z-index: 2; box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+            overflow: hidden; /* EDIT: Giữ ảnh nằm gọn trong khung tròn */
         }
         .pin-standard .body::after {
             content: ''; position: absolute; bottom: -5px; border-left: 5px solid transparent; border-right: 5px solid transparent; 
@@ -38,6 +38,7 @@
             width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             border: 2px solid #ef4444; /* Viền ĐỎ */
             background: #1a1a1a; position: relative; z-index: 2; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+            overflow: hidden; /* EDIT: Giữ ảnh nằm gọn trong khung tròn */
         }
         .pin-checkin .body::after {
             content: ''; position: absolute; bottom: -5px; border-left: 5px solid transparent; border-right: 5px solid transparent; 
@@ -54,6 +55,7 @@
             width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             border: 2px solid #fbbf24; background: #000; position: relative; z-index: 2; 
             box-shadow: 0 0 15px rgba(251, 191, 36, 0.8), inset 0 0 10px rgba(251, 191, 36, 0.3);
+            overflow: hidden; /* EDIT: Giữ ảnh nằm gọn trong khung tròn */
         }
         .pin-vip .body::before { content: '👑'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 12px; }
         .pin-vip .body::after {
@@ -80,7 +82,15 @@
         }
 
         /* --- COMMON STYLES --- */
-        .marker-avatar { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        /* EDIT: Sửa class này để ảnh không bị bè ngang */
+        .marker-avatar { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; /* Quan trọng: Cắt ảnh để vừa khung mà không méo */
+            object-position: center; 
+            border-radius: 50%; 
+            display: block; 
+        }
         .pulsing-dot { position: absolute; width: 6px; height: 6px; background: #ef4444; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; animation: pulse-red 1.5s infinite; }
         @keyframes pulse-red { 0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.7; } 70% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } }
         
@@ -331,7 +341,6 @@
                 }
             } catch (e) { console.error(e); }
         }
-
         function renderMarkers() {
             markersLayer.forEach(m => map.removeLayer(m));
             markersLayer = [];
@@ -339,7 +348,7 @@
             locations.forEach(loc => {
                 if (currentFilterType && loc.type !== currentFilterType) return;
                 
-                // --- Update logic lọc Tag ---
+                // Logic lọc theo Tag
                 if (currentFilterTag) {
                     if (currentFilterType === 'checkin') {
                          if (loc.name !== currentFilterTag) return;
@@ -351,28 +360,25 @@
                 const score = loc.score || 0;
                 let icon;
 
-                // --- SỬA ĐỔI CHÍNH: ĐỒNG BỘ GIAO DIỆN PIN DỌC ---
+                // --- RENDER LOGIC: ĐỒNG BỘ CSS PIN MỚI ---
                 if (loc.type === 'checkin') {
-                    // 1. Điểm Du Lịch: Dùng class pin-checkin (Viền Đỏ)
+                    // Viền ĐỎ - Dùng class body có overflow hidden
                      let innerContent = loc.image ? `<img src="${loc.image}" class="marker-avatar">` : '📸';
                      const html = `<div class="pin-checkin"><div class="body">${innerContent}</div><div class="pin-shadow"></div></div>`;
                      icon = L.divIcon({ className: '', html: html, iconSize: [28, 33], iconAnchor: [14, 33] });
                 } else {
-                    // 2. Điểm Dịch Vụ: Dùng class pin-standard (Viền Vàng) hoặc pin-vip
-                    if (score <= 0) return; // Ẩn điểm chưa có điểm tín nhiệm
+                    if (score <= 0) return; 
 
                     if (score >= 1000) {
-                        // Business VIP
+                        // VIP - Viền Vàng
                         let innerContent = loc.image ? `<img src="${loc.image}" class="marker-avatar">` : '👑';
                         const html = `<div class="pin-vip"><div class="body">${innerContent}<div class="pulsing-dot"></div></div><div class="pin-shadow"></div></div>`;
                         icon = L.divIcon({ className: '', html: html, iconSize: [36, 42], iconAnchor: [18, 42] });
                     } else {
-                        // Business Thường (Đã loại bỏ dot/small markers, chuyển hết về Pin dọc)
-                        // Fallback icon nếu không có ảnh
+                        // Business Thường - Viền Vàng (đã bỏ tiny/small)
                         const emojiMap = { 'food': '🍜', 'hotel': '🛏️', 'cafe': '☕', 'shopping': '🛍️' };
                         let innerContent = loc.image ? `<img src="${loc.image}" class="marker-avatar">` : (emojiMap[loc.type] || '📍');
                         
-                        // Dùng pin-standard (Viền Vàng) cho đồng bộ
                         const html = `<div class="pin-standard"><div class="body">${innerContent}</div><div class="pin-shadow"></div></div>`;
                         icon = L.divIcon({ className: '', html: html, iconSize: [28, 33], iconAnchor: [14, 33] });
                     }
@@ -386,6 +392,7 @@
                 markersLayer.push(marker);
             });
         }
+
         window.openPopup = function(loc) {
             window.clearRoute(); 
 
@@ -416,6 +423,12 @@
             map.flyTo([targetLat, loc.lng], 17, { duration: 1 });
             
             drawRoadSnake(userPos, {lat: loc.lat, lng: loc.lng});
+        }
+        
+        // --- HELPER MỚI: Mở popup từ danh sách tên ---
+        window.openPopupById = function(id) {
+            const loc = locations.find(l => l.id === id);
+            if(loc) openPopup(loc);
         }
 
         async function drawRoadSnake(start, end) {
@@ -529,28 +542,41 @@
             }
         }
 
+        // --- EDIT: LOGIC HIỂN THỊ TÊN KHÁCH SẠN ---
         window.filterByTag = function(tag) {
             currentFilterTag = tag; 
             renderMarkers(); 
             
-            const btns = document.querySelectorAll('.tag-btn');
-            btns.forEach(b => {
-                if ((tag === null && b.innerText === 'Tất cả') || b.innerText === tag) {
-                    b.classList.add('active'); b.classList.remove('text-gray-300');
-                } else {
-                    b.classList.remove('active'); b.classList.add('text-gray-300');
-                }
-            });
+            const filterTags = document.getElementById('filter-tags');
 
-            if (tag && currentFilterType === 'checkin') {
-                const targetLoc = locations.find(l => l.name === tag && l.type === 'checkin');
-                if (targetLoc) {
-                    openPopup(targetLoc); 
-                    showToast(`Đang dẫn đường tới: ${targetLoc.name}`);
+            // Nếu đã chọn một Tag cụ thể (VD: "Bình dân"), chuyển Filter Bar sang hiển thị danh sách tên Địa điểm
+            if (tag) {
+                // Lọc danh sách địa điểm thuộc tag này
+                const filteredLocs = locations.filter(l => {
+                    if (currentFilterType === 'checkin') return l.name === tag;
+                    return l.type === currentFilterType && l.tags && l.tags.includes(tag);
+                });
+
+                if (filteredLocs.length > 0) {
+                    // Tạo nút Quay lại
+                    let html = `<button onclick="window.openCategory('${currentFilterType}')" class="tag-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20 text-yellow-500 font-bold"><i data-lucide="arrow-left" width="10" class="inline"></i> Quay lại</button>`;
+                    
+                    // Tạo nút cho từng địa điểm (hiển thị Tên)
+                    filteredLocs.forEach(l => {
+                        html += `<button onclick="window.openPopupById('${l.id}')" class="tag-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20 text-gray-300 hover:text-white">${l.name}</button>`;
+                    });
+                    
+                    filterTags.innerHTML = html;
+                    lucide.createIcons(); // Refresh icon mũi tên
                 }
-            } else if (tag) {
+
+                // Zoom vào các điểm này
                 const group = new L.featureGroup(markersLayer);
                 if (markersLayer.length > 0) map.fitBounds(group.getBounds(), { padding: [50, 50] });
+
+            } else {
+                // Nếu tag là null (chọn "Tất cả"), quay về hiển thị danh sách Tag
+                window.openCategory(currentFilterType);
             }
         }
         
