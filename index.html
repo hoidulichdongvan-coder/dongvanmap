@@ -13,7 +13,7 @@
     <style>
         .leaflet-div-icon { background: transparent !important; border: none !important; }
 
-        /* --- NEW PIN STYLE: TEARDROP (Hình giọt nước giống Google Maps) --- */
+        /* --- NEW PIN STYLE: TEARDROP (Hình giọt nước tạo bằng CSS) --- */
         
         .pin-wrapper {
             position: relative;
@@ -22,24 +22,25 @@
             transition: transform 0.2s;
         }
 
-        /* Hình dáng giọt nước cơ bản */
+        /* Hình dáng giọt nước cơ bản dùng border-radius */
         .pin-teardrop {
-            width: 32px; height: 32px;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
+            width: 36px; height: 36px; /* Kích thước cố định */
+            border-radius: 50% 50% 50% 0; /* Tạo hình giọt nước */
+            transform: rotate(-45deg); /* Xoay để nhọn xuống dưới */
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 3px 3px 10px rgba(0,0,0,0.4);
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.4); /* Đổ bóng */
             position: relative;
             z-index: 2;
         }
 
         /* Ảnh bên trong xoay ngược lại để thẳng đứng */
         .pin-teardrop img {
-            width: 26px; height: 26px;
-            border-radius: 50%;
-            transform: rotate(45deg); 
-            object-fit: cover;
+            width: 30px; height: 30px; /* Kích thước ảnh cố định */
+            border-radius: 50%; /* Cắt tròn */
+            transform: rotate(45deg); /* Xoay ngược lại theo pin */
+            object-fit: cover; /* Chống méo ảnh */
             border: 2px solid white; 
+            background-color: #f3f4f6;
         }
 
         /* --- STYLES CHO TỪNG LOẠI PIN --- */
@@ -85,10 +86,10 @@
         .pin-vip::before {
             content: '👑';
             position: absolute;
-            top: -12px;
+            top: -16px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 14px;
+            font-size: 16px;
             z-index: 10;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
             animation: bounce 2s infinite;
@@ -409,9 +410,10 @@
                     }
                 }
 
-                const html = `<div class="${wrapperClass}"><div class="pin-teardrop ${pinClass}">${innerContent}</div></div>`;
+                // Cập nhật: Đưa pinClass vào wrapper để CSS selector (.pin-normal .pin-teardrop) hoạt động đúng
+                const html = `<div class="${wrapperClass} ${pinClass}"><div class="pin-teardrop">${innerContent}</div></div>`;
                 
-                // Anchor [20, 40] để mũi nhọn của giọt nước nằm đúng toạ độ
+                // Anchor [20, 40] để mũi nhọn của giọt nước nằm đúng toạ độ (width 40px)
                 icon = L.divIcon({ className: '', html: html, iconSize: [40, 40], iconAnchor: [20, 40] });
 
                 const marker = L.marker([loc.lat, loc.lng], { icon: icon }).addTo(map);
@@ -571,7 +573,6 @@
             }
         }
 
-        // --- SỬA LẠI: Ưu tiên điểm cao và thêm hiệu ứng nút bấm ---
         window.filterByTag = function(tag) {
             currentFilterTag = tag; 
             renderMarkers(); 
@@ -592,7 +593,6 @@
                     
                     filteredLocs.forEach(l => {
                         const isVip = (l.score || 0) >= 1000;
-                        // Nếu VIP thì dùng class guide-btn (viền chạy), text vàng
                         const btnClass = isVip ? "guide-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-yellow-500/50 text-yellow-400 font-bold shadow-lg" 
                                                : "tag-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20 text-gray-300 hover:text-white";
                         const iconVip = isVip ? "👑 " : "";
