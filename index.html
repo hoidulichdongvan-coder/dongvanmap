@@ -374,3 +374,205 @@
                 markersLayer.push(marker);
             });
         }
+        window.openPopup = function(loc) {
+            window.clearRoute(); 
+
+            const p = document.getElementById('popup-detail');
+            p.classList.remove('hidden', 'slide-up');
+            void p.offsetWidth; p.classList.add('slide-up');
+
+            document.getElementById('loc-name').innerText = loc.name;
+            document.getElementById('loc-address').innerText = loc.address || "Đồng Văn, Hà Giang";
+            document.getElementById('loc-desc').innerText = loc.desc || "Đang cập nhật...";
+            document.getElementById('loc-img').src = loc.image || "https://via.placeholder.com/400x200";
+            
+            // Render Menu hoặc thông tin thêm
+            const menuHtml = (loc.menu || []).slice(0,3).map(i => `<div class="text-[10px] text-slate-300 border-b border-white/5 py-0.5 pl-1">• ${i}</div>`).join('');
+            document.getElementById('loc-menu').innerHTML = menuHtml || '<div class="text-[10px] text-gray-500 italic">Chưa có thông tin dịch vụ</div>';
+            
+            const vipBadge = document.getElementById('vip-badge');
+            if ((loc.score || 0) >= 1000) vipBadge.classList.remove('hidden'); else vipBadge.classList.add('hidden');
+
+            const btnMain = document.getElementById('btn-main-contact');
+            if (loc.phone) {
+                btnMain.classList.remove('hidden');
+                btnMain.onclick = () => window.openContactModal(loc);
+            } else {
+                btnMain.classList.add('hidden');
+            }
+
+            // Fly to location
+            const targetLat = loc.lat - 0.0020; 
+            map.flyTo([targetLat, loc.lng], 17, { duration: 1 });
+            
+            drawRoadSnake(userPos, {lat: loc.lat, lng: loc.lng});
+        }
+
+        async function drawRoadSnake(start, end) {
+            const loader = document.getElementById('route-loader'); 
+            loader.classList.remove('hidden');
+            const routeInfoBox = document.getElementById('route-info');
+            
+            try {
+                const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`);
+                const data = await response.json();
+
+                if (!data.routes || data.routes.length === 0) throw new Error("No route");
+
+                const route = data.routes[0];
+                const geometry = route.geometry.coordinates.map(c => [c[1], c[0]]);
+                
+                const distMeters = route.distance; 
+                const durationSeconds = route.duration;
+                
+                const distText = distMeters > 1000 ? (distMeters/1000).toFixed(1) + " km" : Math.round(distMeters) + " m";
+                const durText = Math.ceil(durationSeconds / 60) + " phút";
+
+                document.getElementById('loc-distance').innerText = distText;
+                document.getElementById('loc-duration').innerText = durText;
+                routeInfoBox.classList.remove('hidden');
+
+                const bgLine = L.polyline(geometry, { color: '#fbbf24', weight: 8, opacity: 0.2, smoothFactor: 2.0, lineJoin: 'round' }).addTo(map);
+                snakeLayers.push(bgLine);
+
+                const snakeLine = L.polyline(geometry, { color: '#fbbf24', weight: 4, opacity: 1, className: 'snake-road-path', lineCap: 'round', lineJoin: 'round', smoothFactor: 2.0 }).addTo(map);
+                snakeLayers.push(snakeLine);
+
+                document.getElementById('btn-clear-route').classList.remove('hidden');
+
+            } catch (e) { 
+                console.error(e);
+                const line = L.polyline([[start.lat, start.lng], [end.lat, end.lng]], { color: '#fbbf24', dashArray: '5, 10' }).addTo(map);
+                snakeLayers.push(line);
+                document.getElementById('loc-distance').innerText = "...";
+                document.getElementById('loc-duration').innerText = "...";
+            } finally { 
+                loader.classList.add('hidden'); 
+            }
+        }
+
+        window.closePopup = function() { 
+            document.getElementById('popup-detail').classList.add('hidden'); 
+        }
+
+        window.clearRoute = function() {
+            snakeLayers.forEach(l => map.removeLayer(l)); 
+            snakeLayers = [];
+            document.getElementById('btn-clear-route').classList.add('hidden');
+            document.getElementById('route-info').classList.add('hidden');
+        }
+
+        window.openContactModal = function(loc) {
+            const m = document.getElementById('modal-contact-choice');
+            m.classList.remove('hidden'); m.classList.add('flex');
+            document.getElementById('btn-choice-call').onclick = () => { contactBusiness(loc, 'call'); window.closeContactModal(); };
+            document.getElementById('btn-choice-zalo').onclick = () => { contactBusiness(loc, 'zalo'); window.closeContactModal(); };
+        }
+
+        window.closeContactModal = function() {
+            const m = document.getElementById('modal-contact-choice');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+
+        async function contactBusiness(loc, method) {
+            if (method === 'call') window.location.href = `tel:${loc.phone}`;
+            else if (method === 'zalo') {
+                const cleanPhone = loc.phone.replace(/^0/, '84').replace(/\D/g,'');
+                window.open(`https://zalo.me/${cleanPhone}`, '_blank');
+            }
+            if (db && loc.id && loc.type !== 'checkin') {
+                try {
+                    const ref = doc(db, "locations", loc.id);
+                    await updateDoc(ref, { score: increment(-5) });
+                    loc.score -= 5;
+                } catch (e) { console.error(e); }
+            }
+        }
+
+        window.openCategory = function(type) {
+            currentFilterType = type; currentFilterTag = null; renderMarkers();
+            
+            const relatedLocs = locations.filter(l => l.type === type);
+            let filterItems = new Set();
+
+            // --- UPDATE: Nếu là Checkin thì lấy Tên địa điểm làm Tag lọc ---
+            if (type === 'checkin') {
+                relatedLocs.forEach(l => filterItems.add(l.name));
+            } else {
+                relatedLocs.forEach(l => { if(l.tags) l.tags.forEach(t => filterItems.add(t)); });
+            }
+
+            const filterBar = document.getElementById('filter-bar');
+            const filterTags = document.getElementById('filter-tags');
+            
+            if (filterItems.size > 0) {
+                filterBar.classList.remove('hidden');
+                let html = `<button onclick="window.filterByTag(null)" class="tag-btn active glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20">Tất cả</button>`;
+                filterItems.forEach(item => {
+                    html += `<button onclick="window.filterByTag('${item}')" class="tag-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20 text-gray-300 hover:text-white">${item}</button>`;
+                });
+                filterTags.innerHTML = html;
+            } else { filterBar.classList.add('hidden'); }
+
+            if (relatedLocs.length > 0) {
+                const group = new L.featureGroup(markersLayer);
+                map.fitBounds(group.getBounds(), { padding: [50, 50] });
+            }
+        }
+
+        window.filterByTag = function(tag) {
+            currentFilterTag = tag; 
+            renderMarkers(); // Gọi lại render để lọc trên bản đồ
+            
+            // Update UI nút bấm
+            const btns = document.querySelectorAll('.tag-btn');
+            btns.forEach(b => {
+                if ((tag === null && b.innerText === 'Tất cả') || b.innerText === tag) {
+                    b.classList.add('active'); b.classList.remove('text-gray-300');
+                } else {
+                    b.classList.remove('active'); b.classList.add('text-gray-300');
+                }
+            });
+
+            // --- UPDATE: Logic Tự động chỉ đường nếu chọn 1 địa điểm cụ thể (Checkin) ---
+            if (tag && currentFilterType === 'checkin') {
+                // Tìm địa điểm có tên trùng với tag
+                const targetLoc = locations.find(l => l.name === tag && l.type === 'checkin');
+                if (targetLoc) {
+                    openPopup(targetLoc); // Tự động mở popup và chỉ đường
+                    showToast(`Đang dẫn đường tới: ${targetLoc.name}`);
+                }
+            } else if (tag) {
+                // Logic cũ cho các danh mục khác (Zoom vào nhóm)
+                const group = new L.featureGroup(markersLayer);
+                if (markersLayer.length > 0) map.fitBounds(group.getBounds(), { padding: [50, 50] });
+            }
+        }
+        
+        window.closeFilter = function() {
+            document.getElementById('filter-bar').classList.add('hidden');
+            currentFilterType = null; currentFilterTag = null; renderMarkers(); map.setZoom(16);
+        }
+
+        window.toggleGPS = function() { isTracking ? disableTracking("Đã tắt theo dõi") : enableTracking(); }
+        function enableTracking() { isTracking = true; lastMapUpdatePos = null; updateGPSBtn(true); map.flyTo([userPos.lat, userPos.lng], 17); showToast("Đang theo dõi vị trí"); }
+        function disableTracking(msg) { isTracking = false; updateGPSBtn(false); if(msg) showToast(msg); }
+        function updateGPSBtn(active) { const btn = document.getElementById('btn-gps'); active ? btn.classList.add('bg-green-600', 'text-white') : btn.classList.remove('bg-green-600', 'text-white'); }
+        
+        window.fitRoute = function() { 
+            if(snakeLayers.length > 0) { 
+                const group = new L.featureGroup(snakeLayers); 
+                group.addLayer(userMarker); 
+                map.fitBounds(group.getBounds(), { padding: [50, 50] }); 
+            } else {
+                showToast("Chưa có lộ trình"); 
+            }
+        }
+        window.openRewards = function() { document.getElementById('modal-rewards').classList.remove('hidden'); }
+        window.closeRewards = function() { document.getElementById('modal-rewards').classList.add('hidden'); }
+        window.checkIn = function() { showToast("Check-in +10 điểm!"); }
+        window.loadItinerary = function() { window.openCategory('checkin'); showToast("Đang hiển thị điểm tham quan"); }
+        function showToast(msg) { const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = msg; t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000); }
+    </script>
+</body>
+</html>
