@@ -399,7 +399,6 @@
                 }
             } catch (e) { console.error(e); }
         }
-        
         // --- LOGIC RENDER PIN ĐÃ UPDATE ---
         function renderMarkers() {
             markersLayer.forEach(m => map.removeLayer(m));
@@ -573,13 +572,7 @@
                 const cleanPhone = loc.phone.replace(/^0/, '84').replace(/\D/g,'');
                 window.open(`https://zalo.me/${cleanPhone}`, '_blank');
             }
-            if (db && loc.id && loc.type !== 'checkin') {
-                try {
-                    const ref = doc(db, "locations", loc.id);
-                    await updateDoc(ref, { score: increment(-5) });
-                    loc.score -= 5;
-                } catch (e) { console.error(e); }
-            }
+            // Logic trừ điểm (updateDoc score increment -5) đã được gỡ bỏ tại đây
         }
 
         window.openCategory = function(type) {
