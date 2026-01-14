@@ -12,60 +12,81 @@
 
     <style>
         .leaflet-div-icon { background: transparent !important; border: none !important; }
+        
+        /* Tối ưu hiệu năng render marker để giảm lag */
+        .leaflet-marker-icon { will-change: transform; }
 
-        /* --- NEW PIN STYLE: TEARDROP FIXED --- */
+        /* --- NEW PIN STYLE: SMALLER SIZE (GIẢM KÍCH CỠ) --- */
         
         .pin-wrapper {
             position: relative;
-            width: 44px; height: 44px; /* Tăng nhẹ kích thước container */
+            width: 32px; height: 32px; /* Đã giảm từ 44px -> 32px */
             display: flex; justify-content: center; align-items: center;
             transition: transform 0.2s;
         }
 
         /* Hình dáng giọt nước */
         .pin-teardrop {
-            width: 38px; height: 38px; /* Kích thước cố định */
+            width: 26px; height: 26px; /* Đã giảm từ 38px -> 26px */
             border-radius: 50% 50% 50% 0; 
             transform: rotate(-45deg); 
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 2px 2px 6px rgba(0,0,0,0.4); 
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.4); 
             position: relative;
             z-index: 2;
-            overflow: visible; /* Để border không bị cắt */
+            overflow: visible;
         }
 
-        /* FIX LỖI ẢNH BỊ BÈ NGANG: Đặt kích thước cứng và object-fit */
+        /* Ảnh bên trong Pin */
         .pin-teardrop img {
-            width: 30px !important; 
-            height: 30px !important; 
+            width: 20px !important; /* Đã giảm từ 30px -> 20px */
+            height: 20px !important; 
             border-radius: 50%; 
-            transform: rotate(45deg); /* Xoay ảnh lại cho thẳng */
-            object-fit: cover !important; /* QUAN TRỌNG: Cắt ảnh vừa khung, không bị méo/bè */
+            transform: rotate(45deg); 
+            object-fit: cover !important; 
             background-color: #f3f4f6;
             display: block;
         }
         
-        /* Icon chữ (nếu không có ảnh) cũng cần xoay lại */
+        /* Icon chữ/emoji */
         .pin-teardrop span, .pin-teardrop i {
             transform: rotate(45deg);
-            font-size: 16px;
+            font-size: 12px; /* Giảm font size */
         }
 
-        /* --- STYLES MỚI THEO YÊU CẦU --- */
+        /* --- LABEL (TÊN ĐỊA ĐIỂM) DƯỚI ICON --- */
+        .pin-label {
+            position: absolute;
+            top: 30px; /* Đẩy xuống dưới icon */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+            text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
+            z-index: 10;
+            pointer-events: none; /* Không che chắn click vào map */
+            text-align: center;
+            width: auto;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-        /* 1. Normal Service (Dịch vụ thường) - VIỀN VÀNG */
+        /* 1. Normal Service - VIỀN VÀNG */
         .pin-normal .pin-teardrop {
-            background: #1f2937; /* Nền tối */
-            border: 2px solid #facc15; /* Yellow-400: Viền vàng tĩnh */
+            background: #1f2937; 
+            border: 1.5px solid #facc15; 
         }
 
         /* 2. Checkin Points - VIỀN ĐỎ */
         .pin-checkin .pin-teardrop {
-            background: #fff; /* Nền trắng để nổi bật ảnh/icon */
-            border: 2px solid #ef4444; /* Red-500: Viền đỏ đậm */
+            background: #fff; 
+            border: 1.5px solid #ef4444; 
         }
 
-        /* 3. VIP Business (>1000 điểm) - VIỀN VÀNG ĐỘNG */
+        /* 3. VIP Business - VIỀN VÀNG ĐỘNG */
         .pin-vip {
             z-index: 1000 !important; 
             animation: float 3s ease-in-out infinite;
@@ -73,47 +94,34 @@
         
         .pin-vip .pin-teardrop {
             background: linear-gradient(135deg, #1f2937 0%, #000 100%);
-            /* Viền vàng ban đầu */
-            border: 2px solid #fbbf24; 
-            /* Animation chạy viền */
+            border: 1.5px solid #fbbf24; 
             animation: vip-border-pulse 1.5s infinite alternate; 
-            box-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+            box-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
         }
 
-        /* Hiệu ứng viền vàng động cho VIP */
         @keyframes vip-border-pulse {
-            0% { border-color: #fbbf24; box-shadow: 0 0 5px #fbbf24; }
-            100% { border-color: #fff; box-shadow: 0 0 15px #f59e0b; } /* Chuyển từ vàng sang trắng rực */
+            0% { border-color: #fbbf24; box-shadow: 0 0 3px #fbbf24; }
+            100% { border-color: #fff; box-shadow: 0 0 8px #f59e0b; }
         }
 
-        /* Vòng tròn lan tỏa dưới chân VIP */
         .pin-vip::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            width: 20px; height: 10px;
+            content: ''; position: absolute; bottom: -3px;
+            width: 14px; height: 6px; /* Giảm kích thước bóng */
             background: rgba(251, 191, 36, 0.5);
             border-radius: 50%;
             animation: ripple 1.5s infinite;
             z-index: 1;
         }
 
-        /* Icon vương miện trên đầu VIP */
         .pin-vip::before {
-            content: '👑';
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 14px;
-            z-index: 10;
-            animation: bounce 2s infinite;
+            content: '👑'; position: absolute; top: -14px; left: 50%;
+            transform: translateX(-50%); font-size: 10px; /* Giảm size vương miện */
+            z-index: 10; animation: bounce 2s infinite;
         }
 
-        /* --- ANIMATIONS CŨ GIỮ NGUYÊN --- */
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
         @keyframes ripple { 0% { transform: scale(0.5); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
-        @keyframes bounce { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -3px); } }
+        @keyframes bounce { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -2px); } }
 
         /* --- USER LOCATION --- */
         .user-marker-container { position: relative; width: 20px; height: 20px; }
@@ -149,7 +157,6 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .tag-btn.active { background: #eab308; color: black; border-color: #eab308; font-weight: bold; }
 
-        /* BUTTON VIỀN VÀNG CHẠY */
         .guide-btn { position: relative; overflow: hidden; transition: all 0.3s; }
         .guide-btn::before {
             content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 2px;
@@ -312,12 +319,20 @@
         window.addEventListener('load', () => {
             initMap();
             loadDataSmart();
+            // startGPS sẽ được gọi sau khi initMap xử lý locate xong hoặc song song
             startGPS();
         });
 
         function initMap() {
             if(document.getElementById('map')._leaflet_id) return;
-            map = L.map('map', { zoomControl: false, tap: false }).setView([userPos.lat, userPos.lng], 16);
+            
+            // FIX LAG: Thêm preferCanvas: true để render mượt hơn trên mobile
+            map = L.map('map', { 
+                zoomControl: false, 
+                tap: false, 
+                preferCanvas: true 
+            }).setView([userPos.lat, userPos.lng], 16);
+
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
 
             const uIcon = L.divIcon({ 
@@ -327,6 +342,16 @@
                 iconAnchor: [10, 10] 
             });
             userMarker = L.marker([userPos.lat, userPos.lng], { icon: uIcon, zIndexOffset: 2000 }).addTo(map);
+
+            // FIX: Tự động tìm vị trí ngay khi mở web (Giống Google Maps)
+            map.locate({setView: true, maxZoom: 16, enableHighAccuracy: true});
+            
+            map.on('locationfound', (e) => {
+                userPos = e.latlng;
+                userMarker.setLatLng(e.latlng);
+                isTracking = true;
+                updateGPSBtn(true);
+            });
 
             map.on('dragstart', () => { if(isTracking) disableTracking("Đã tắt tự động theo dõi"); });
             map.on('click', () => { window.closePopup(); window.closeContactModal(); }); 
@@ -375,7 +400,7 @@
             } catch (e) { console.error(e); }
         }
         
-        // --- LOGIC RENDER PIN ĐÃ SỬA ---
+        // --- LOGIC RENDER PIN ĐÃ UPDATE ---
         function renderMarkers() {
             markersLayer.forEach(m => map.removeLayer(m));
             markersLayer = [];
@@ -393,35 +418,41 @@
 
                 const score = loc.score || 0;
                 
-                // --- XỬ LÝ LOẠI PIN & MÀU SẮC THEO YÊU CẦU ---
                 let wrapperClass = "pin-wrapper";
-                let pinClass = "pin-normal"; // Mặc định: Dịch vụ (Viền vàng)
+                let pinClass = "pin-normal"; 
                 let innerContent = "";
 
-                // 1. Nếu là Check-in -> Viền đỏ
                 if (loc.type === 'checkin') {
                     pinClass = "pin-checkin";
-                    innerContent = loc.image ? `<img src="${loc.image}">` : '<i data-lucide="camera" width="20"></i>';
+                    innerContent = loc.image ? `<img src="${loc.image}">` : '<i data-lucide="camera" width="16"></i>'; // Icon nhỏ lại
                 } 
-                // 2. Nếu là Dịch vụ (không phải checkin)
                 else {
-                    if (score <= 0) return; // Ẩn điểm <= 0
+                    if (score <= 0) return; 
 
                     const emojiMap = { 'food': '🍜', 'hotel': '🛏️', 'cafe': '☕', 'shopping': '🛍️' };
-                    // Ưu tiên dùng ảnh để hiển thị đẹp hơn
                     innerContent = loc.image ? `<img src="${loc.image}">` : (emojiMap[loc.type] || '📍');
 
-                    // 3. Nếu là VIP (trên 1000 điểm) -> Thêm class VIP (Viền vàng động)
                     if (score >= 1000) {
                         wrapperClass += " pin-vip";
                     }
                 }
 
-                // Cấu trúc HTML Giọt nước
-                const html = `<div class="${wrapperClass} ${pinClass}"><div class="pin-teardrop">${innerContent}</div></div>`;
+                // FIX: Thêm LABEL tên địa điểm vào HTML của Marker
+                // FIX: Giảm size icon xuống 32x32 trong HTML string ở Part 1 đã định nghĩa class size, 
+                // nhưng ở đây cần thêm div .pin-label
+                const html = `
+                    <div class="${wrapperClass} ${pinClass}">
+                        <div class="pin-teardrop">${innerContent}</div>
+                        <div class="pin-label">${loc.name}</div>
+                    </div>`;
                 
-                // Neo icon tại vị trí mũi nhọn [20, 40]
-                const icon = L.divIcon({ className: '', html: html, iconSize: [40, 40], iconAnchor: [20, 40] });
+                // FIX: Cập nhật iconSize thành [32, 32] và Anchor cho chuẩn
+                const icon = L.divIcon({ 
+                    className: '', 
+                    html: html, 
+                    iconSize: [32, 32], 
+                    iconAnchor: [16, 38] // X: Giữa (16), Y: Đáy + Label offset (38)
+                });
 
                 const marker = L.marker([loc.lat, loc.lng], { icon: icon }).addTo(map);
                 marker.on('click', (e) => { 
@@ -600,11 +631,20 @@
                     
                     filteredLocs.forEach(l => {
                         const isVip = (l.score || 0) >= 1000;
-                        const btnClass = isVip ? "guide-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-yellow-500/50 text-yellow-400 font-bold shadow-lg" 
-                                               : "tag-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20 text-gray-300 hover:text-white";
-                        const iconVip = isVip ? "👑 " : "";
+                        
+                        // FIX: CLASS BUTTON CHO VIP
+                        // Bỏ whitespace-nowrap, thêm h-auto và text-left để hiển thị tên dài nhiều dòng
+                        // Thêm min-w để icon không bị bóp
+                        const btnClass = isVip 
+                            ? "guide-btn glass-panel px-3 py-1.5 rounded h-auto whitespace-normal leading-tight text-left border border-yellow-500/50 text-yellow-400 font-bold shadow-lg flex items-center gap-1.5 min-w-[120px]" 
+                            : "tag-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20 text-gray-300 hover:text-white";
+                        
+                        // FIX: Hiển thị đầy đủ vương miện cho VIP
+                        const content = isVip 
+                            ? `<i data-lucide="crown" width="12" class="shrink-0"></i> <span>${l.name}</span>` 
+                            : l.name;
 
-                        html += `<button onclick="window.openPopupById('${l.id}')" class="${btnClass}">${iconVip}${l.name}</button>`;
+                        html += `<button onclick="window.openPopupById('${l.id}')" class="${btnClass}">${content}</button>`;
                     });
                     
                     filterTags.innerHTML = html;
