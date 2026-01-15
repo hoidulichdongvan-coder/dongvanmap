@@ -14,91 +14,19 @@
         .leaflet-div-icon { background: transparent !important; border: none !important; }
         .leaflet-marker-icon { will-change: transform; }
 
-        /* --- MODIFIED: ULTRA SMALL SIZE (GIẢM KÍCH CỠ NHỎ HƠN NỮA) --- */
-        
-        .pin-wrapper {
-            position: relative;
-            width: 24px; height: 24px; 
-            display: flex; justify-content: center; align-items: center;
-            transition: transform 0.2s;
-        }
-
-        .pin-teardrop {
-            width: 20px; height: 20px; 
-            border-radius: 50% 50% 50% 0; 
-            transform: rotate(-45deg); 
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.5); 
-            position: relative;
-            z-index: 2;
-            overflow: visible;
-        }
-
-        .pin-teardrop img {
-            width: 14px !important; 
-            height: 14px !important; 
-            border-radius: 50%; 
-            transform: rotate(45deg); 
-            object-fit: cover !important; 
-            background-color: #f3f4f6;
-            display: block;
-        }
-        
-        .pin-teardrop span, .pin-teardrop i {
-            transform: rotate(45deg);
-            font-size: 10px; /* Giảm font size */
-        }
-
-        .pin-label {
-            position: absolute;
-            top: 24px; 
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 8px; 
-            font-weight: 700;
-            color: white;
-            white-space: nowrap;
-            text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
-            z-index: 10;
-            pointer-events: none;
-            text-align: center;
-            width: auto;
-            max-width: 100px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
+        .pin-wrapper { position: relative; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
+        .pin-teardrop { width: 20px; height: 20px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.5); position: relative; z-index: 2; overflow: visible; }
+        .pin-teardrop img { width: 14px !important; height: 14px !important; border-radius: 50%; transform: rotate(45deg); object-fit: cover !important; background-color: #f3f4f6; display: block; }
+        .pin-teardrop span, .pin-teardrop i { transform: rotate(45deg); font-size: 10px; font-weight: 800; line-height: 1; }
+        .pin-label { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: 700; color: white; white-space: nowrap; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000; z-index: 10; pointer-events: none; text-align: center; width: auto; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
         .pin-normal .pin-teardrop { background: #1f2937; border: 1px solid #facc15; }
         .pin-checkin .pin-teardrop { background: #fff; border: 1px solid #ef4444; }
-
+        .pin-tour-step .pin-teardrop { background: #ef4444; border: 1px solid #fff; color: white; }
         .pin-vip { z-index: 1000 !important; animation: float 3s ease-in-out infinite; }
-        .pin-vip .pin-teardrop {
-            background: linear-gradient(135deg, #1f2937 0%, #000 100%);
-            border: 1px solid #fbbf24; 
-            animation: vip-border-pulse 1.5s infinite alternate; 
-            box-shadow: 0 0 4px rgba(251, 191, 36, 0.6);
-        }
-
-        @keyframes vip-border-pulse {
-            0% { border-color: #fbbf24; box-shadow: 0 0 2px #fbbf24; }
-            100% { border-color: #fff; box-shadow: 0 0 6px #f59e0b; }
-        }
-
-        .pin-vip::after {
-            content: ''; position: absolute; bottom: -2px;
-            width: 10px; height: 4px; 
-            background: rgba(251, 191, 36, 0.5);
-            border-radius: 50%;
-            animation: ripple 1.5s infinite;
-            z-index: 1;
-        }
-
-        .pin-vip::before {
-            content: '👑'; position: absolute; top: -10px; left: 50%;
-            transform: translateX(-50%); font-size: 8px; 
-            z-index: 10; animation: bounce 2s infinite;
-        }
-
+        .pin-vip .pin-teardrop { background: linear-gradient(135deg, #1f2937 0%, #000 100%); border: 1px solid #fbbf24; animation: vip-border-pulse 1.5s infinite alternate; box-shadow: 0 0 4px rgba(251, 191, 36, 0.6); }
+        @keyframes vip-border-pulse { 0% { border-color: #fbbf24; box-shadow: 0 0 2px #fbbf24; } 100% { border-color: #fff; box-shadow: 0 0 6px #f59e0b; } }
+        .pin-vip::after { content: ''; position: absolute; bottom: -2px; width: 10px; height: 4px; background: rgba(251, 191, 36, 0.5); border-radius: 50%; animation: ripple 1.5s infinite; z-index: 1; }
+        .pin-vip::before { content: '👑'; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 8px; z-index: 10; animation: bounce 2s infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
         @keyframes ripple { 0% { transform: scale(0.5); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
         @keyframes bounce { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -2px); } }
@@ -117,11 +45,27 @@
         .luxury-border { border: 1px solid #eab308; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .tag-btn.active { background: #eab308; color: black; border-color: #eab308; font-weight: bold; }
+        
         .guide-btn { position: relative; overflow: hidden; transition: all 0.3s; }
         .guide-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #fbbf24); animation: btn-border-top 2s linear infinite; }
         .guide-btn::after { content: ''; position: absolute; bottom: 0; right: -100%; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #fbbf24); animation: btn-border-bottom 2s linear infinite; }
         @keyframes btn-border-top { 0% { left: -100%; } 50%, 100% { left: 100%; } }
         @keyframes btn-border-bottom { 0% { right: 100%; } 50%, 100% { right: -100%; } }
+
+        /* --- STYLE CHO SLIDER TOUR (CAROUSEL) --- */
+        #tour-slider { scroll-behavior: smooth; }
+        .tour-slide-card {
+            min-width: 220px; height: 130px;
+            border-radius: 12px; position: relative; overflow: hidden; flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: transform 0.2s, border-color 0.2s; cursor: pointer;
+            background: #0f172a;
+        }
+        .tour-slide-card:active { transform: scale(0.95); }
+        .tour-slide-card.active { border: 2px solid #fbbf24; transform: translateY(-5px); }
+        .tour-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: opacity 0.3s; }
+        .tour-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); }
     </style>
 </head>
 <body class="bg-gray-900 overflow-hidden text-white font-sans">
@@ -144,10 +88,6 @@
             </div>
         </div>
         <div class="flex gap-2 pointer-events-auto justify-center px-4 overflow-x-auto hide-scrollbar">
-            <button onclick="window.openCategory('tour')" class="guide-btn glass-panel px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-lg active:scale-95 border border-yellow-500/20 shrink-0">
-                <i data-lucide="flag" class="text-green-400" width="14"></i>
-                <span class="text-[10px] font-bold uppercase text-green-100">Tour tham quan</span>
-            </button>
             <button onclick="window.openCategory('checkin')" class="guide-btn glass-panel px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-lg active:scale-95 border border-yellow-500/20 shrink-0">
                 <i data-lucide="map" class="text-blue-400" width="14"></i>
                 <span class="text-[10px] font-bold uppercase text-blue-100">Điểm du lịch</span>
@@ -167,6 +107,9 @@
             <button onclick="closeFilter()" class="mx-auto mt-1 bg-black/50 text-[9px] px-2 py-0.5 rounded-full text-gray-400 flex items-center gap-1 hover:text-white"><i data-lucide="x" width="8"></i> Đóng lọc</button>
         </div>
     </div>
+
+    <div id="tour-slider" class="absolute bottom-6 left-0 right-0 z-[1500] pointer-events-auto px-4 overflow-x-auto hide-scrollbar flex gap-3 hidden pl-4 pr-10 pb-4">
+        </div>
 
     <div id="route-loader" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[4000] bg-black/80 px-4 py-3 rounded-xl flex flex-col items-center hidden backdrop-blur">
         <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mb-2"></div>
@@ -240,22 +183,51 @@
         <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 items-center justify-start" id="gal-content">
             </div>
     </div>
+    
+    <div id="modal-contact-choice" class="fixed inset-0 z-[6000] bg-black/90 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-yellow-500/50 rounded-xl p-4 w-full max-w-xs text-center shadow-2xl slide-up">
+            <h3 class="text-gold font-bold text-sm uppercase mb-4 tracking-wider">Chọn cách liên hệ</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <button id="btn-choice-call" class="bg-green-600 hover:bg-green-500 text-white py-3 rounded-lg font-bold text-xs flex flex-col items-center gap-1 active:scale-95 transition">
+                    <i data-lucide="phone" width="20"></i> Gọi trực tiếp
+                </button>
+                <button id="btn-choice-zalo" class="bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-bold text-xs flex flex-col items-center gap-1 active:scale-95 transition">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Icon_of_Zalo.svg/1200px-Icon_of_Zalo.svg.png" width="20" class="rounded bg-white p-0.5"> 
+                    Chat Zalo
+                </button>
+            </div>
+            <button onclick="window.closeContactModal()" class="mt-4 text-gray-400 text-[10px] hover:text-white border-b border-transparent hover:border-gray-400 transition">Đóng</button>
+        </div>
+    </div>
+
+    <div id="modal-rewards" class="fixed inset-0 z-[3000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-sm glass-panel rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh] luxury-border">
+            <div class="bg-slate-800 p-3 text-center border-b border-white/10 relative">
+                <button onclick="window.closeRewards()" class="absolute top-3 right-3 text-slate-500 hover:text-white"><i data-lucide="x" width="18"></i></button>
+                <h2 class="text-base font-bold text-gold uppercase">Kho Quà</h2>
+            </div>
+            <div class="p-4 space-y-2 overflow-y-auto" id="rewards-list"></div>
+        </div>
+    </div>
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-4 py-2 rounded-full shadow-xl z-[4000] font-bold text-xs border border-yellow-500 hidden whitespace-nowrap flex items-center gap-2">
+        <i data-lucide="bell" width="14" class="text-yellow-500"></i> <span id="toast-msg">...</span>
+    </div>
     <script type="module">
         const firebaseConfig = { apiKey: "AIzaSyAupPfv0VdxqpFiVFlw5IhMSHIMcR-EiGg", authDomain: "dongvanmap.firebaseapp.com", projectId: "dongvanmap", storageBucket: "dongvanmap.firebasestorage.app", messagingSenderId: "453876053390", appId: "1:453876053390:web:f96ee558f6f9fede1ee0df" };
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         let map, userMarker, watchId, snakeLayers = [], markersLayer = [];
         let userPos = { lat: 23.27833, lng: 105.36154 }; 
         let locations = [];
-        let tours = []; // ADDED: Mảng chứa dữ liệu Tour
+        let tours = []; 
         let isTracking = false;
         
         let currentFilterType = null; 
         let currentFilterTag = null;
         let lastMapUpdatePos = null; 
         const MIN_UPDATE_DISTANCE = 15; 
-        const CACHE_KEY = 'dongvan_locations_v6_business';
+        const CACHE_KEY = 'dongvan_locations_v8_merged';
 
         let db; 
 
@@ -267,18 +239,14 @@
 
         function initMap() {
             if(document.getElementById('map')._leaflet_id) return;
-            
             map = L.map('map', { zoomControl: false, tap: false, preferCanvas: true }).setView([userPos.lat, userPos.lng], 16);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
-
             const uIcon = L.divIcon({ className: '', html: '<div class="user-marker-container"><div class="user-pulse"></div><div class="user-dot"></div></div>', iconSize: [20, 20], iconAnchor: [10, 10] });
             userMarker = L.marker([userPos.lat, userPos.lng], { icon: uIcon, zIndexOffset: 2000 }).addTo(map);
-
             map.locate({setView: true, maxZoom: 16, enableHighAccuracy: true});
             map.on('locationfound', (e) => { userPos = e.latlng; userMarker.setLatLng(e.latlng); isTracking = true; updateGPSBtn(true); });
             map.on('dragstart', () => { if(isTracking) disableTracking("Đã tắt tự động theo dõi"); });
             map.on('click', () => { window.closePopup(); window.closeContactModal(); }); 
-            
             lucide.createIcons();
         }
 
@@ -300,76 +268,35 @@
         }
 
         async function loadDataSmart() {
-            // Load Locations
             const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) { try { locations = JSON.parse(cached); } catch(e) {} }
-            
+            if (cached) { 
+                try { 
+                    const data = JSON.parse(cached);
+                    locations = data.locations || []; 
+                    tours = data.tours || [];
+                    renderMarkers(); 
+                } catch(e) {} 
+            }
             try {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 
-                // Fetch Locations
                 const locSnap = await getDocs(collection(db, "locations"));
-                if (!locSnap.empty) {
-                    locations = locSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    localStorage.setItem(CACHE_KEY, JSON.stringify(locations));
-                }
+                if (!locSnap.empty) locations = locSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // ADDED: Fetch Tours từ Firebase
                 const tourSnap = await getDocs(collection(db, "tours"));
-                if (!tourSnap.empty) {
-                    tours = tourSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                }
+                if (!tourSnap.empty) tours = tourSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ locations, tours }));
                 renderMarkers();
             } catch (e) { console.error("Load Data Error:", e); }
         }
 
-        // --- RENDER MARKER ĐÃ UPDATE LOGIC TOUR ---
+        // --- RENDER MARKERS (CƠ BẢN) ---
         function renderMarkers() {
             markersLayer.forEach(m => map.removeLayer(m));
             markersLayer = [];
 
-            // LOGIC RIÊNG CHO TOUR: Nếu đang chọn tab Tour, hiển thị các Marker đại diện cho Tour
-            if (currentFilterType === 'tour') {
-                tours.forEach(tour => {
-                    // Tìm điểm đầu tiên trong tour để đặt marker
-                    if (!tour.points || tour.points.length === 0) return;
-                    const startLocId = tour.points[0];
-                    const startLoc = locations.find(l => l.id === startLocId);
-                    
-                    if (startLoc) {
-                        const html = `
-                            <div class="pin-wrapper pin-vip">
-                                <div class="pin-teardrop" style="background: #064e3b; border-color: #34d399;">
-                                    <i data-lucide="flag" class="text-white" width="12" style="transform: rotate(45deg)"></i>
-                                </div>
-                                <div class="pin-label text-green-300">${tour.name}</div>
-                            </div>`;
-                        
-                        const icon = L.divIcon({ className: '', html: html, iconSize: [24, 24], iconAnchor: [12, 30] });
-                        const marker = L.marker([startLoc.lat, startLoc.lng], { icon: icon }).addTo(map);
-                        
-                        // Gắn data tour vào marker để mở popup
-                        marker.tourData = tour; 
-                        marker.on('click', (e) => { 
-                            L.DomEvent.stopPropagation(e);
-                            openTourPopup(tour); 
-                        });
-                        markersLayer.push(marker);
-                    }
-                });
-                lucide.createIcons();
-                
-                // Fit bounds để thấy hết các tour
-                if (markersLayer.length > 0) {
-                    const group = new L.featureGroup(markersLayer);
-                    map.fitBounds(group.getBounds(), { padding: [50, 50] });
-                }
-                return; // Kết thúc render cho trường hợp Tour
-            }
-
-            // LOGIC CŨ CHO CÁC ĐỊA ĐIỂM THƯỜNG
             locations.forEach(loc => {
                 if (currentFilterType && loc.type !== currentFilterType) return;
                 if (currentFilterTag) {
@@ -385,8 +312,7 @@
                 if (loc.type === 'checkin') {
                     pinClass = "pin-checkin";
                     innerContent = loc.image ? `<img src="${loc.image}">` : '<i data-lucide="camera" width="16"></i>';
-                } 
-                else {
+                } else {
                     if (score <= 0) return; 
                     const emojiMap = { 'food': '🍜', 'hotel': '🛏️', 'cafe': '☕', 'shopping': '🛍️', 'rescue': '🛠️' };
                     innerContent = loc.image ? `<img src="${loc.image}">` : (emojiMap[loc.type] || '📍');
@@ -396,49 +322,93 @@
                 const html = `<div class="${wrapperClass} ${pinClass}"><div class="pin-teardrop">${innerContent}</div><div class="pin-label">${loc.name}</div></div>`;
                 const icon = L.divIcon({ className: '', html: html, iconSize: [24, 24], iconAnchor: [12, 30] });
                 const marker = L.marker([loc.lat, loc.lng], { icon: icon }).addTo(map);
-                
                 marker.on('click', (e) => { L.DomEvent.stopPropagation(e); openPopup(loc); });
                 markersLayer.push(marker);
             });
             lucide.createIcons();
         }
 
-        // --- POPUP CHO TOUR (MỚI) ---
-        window.openTourPopup = function(tour) {
-            window.clearRoute();
-            const p = document.getElementById('popup-detail');
-            p.classList.remove('hidden', 'slide-up');
-            void p.offsetWidth; p.classList.add('slide-up');
-
-            document.getElementById('loc-name').innerText = tour.name;
-            document.getElementById('loc-address').innerText = (tour.points?.length || 0) + " điểm tham quan";
+        // --- LOGIC MỞ DANH MỤC & HIỂN THỊ TOUR SLIDER ---
+        window.openCategory = function(type) {
+            currentFilterType = type; currentFilterTag = null; renderMarkers();
             
-            // Tìm ảnh của điểm đầu tiên làm ảnh đại diện cho tour
-            let firstLoc = null;
-            if(tour.points && tour.points.length > 0) firstLoc = locations.find(l => l.id === tour.points[0]);
-            document.getElementById('loc-img').src = firstLoc ? (firstLoc.image || "https://via.placeholder.com/400x200") : "https://via.placeholder.com/400x200";
+            const filterBar = document.getElementById('filter-bar');
+            const tourSlider = document.getElementById('tour-slider');
 
-            document.getElementById('loc-desc').innerText = tour.desc || "Lộ trình tham quan hấp dẫn tại Đồng Văn.";
-            
-            // Ẩn các nút không cần thiết
-            document.getElementById('vip-badge').classList.add('hidden');
-            document.getElementById('btn-main-contact').classList.add('hidden');
-            document.getElementById('loc-menu').innerHTML = '';
+            // Nếu là mục Checkin (Điểm du lịch) -> Hiện Tour Slider
+            if (type === 'checkin') {
+                renderTourSlider();
+                tourSlider.classList.remove('hidden');
+            } else {
+                tourSlider.classList.add('hidden');
+            }
 
-            // ADDED: Nút đặc biệt "Xem Lộ Trình"
-            const btnContainer = document.getElementById('gallery-btn-container');
-            btnContainer.innerHTML = `
-                <button onclick="window.drawTourRoute('${tour.id}')" class="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-md font-bold text-xs flex items-center justify-center gap-2 shadow animate-pulse">
-                    <i data-lucide="map" width="16"></i> XEM LỘ TRÌNH NGAY
-                </button>
-            `;
-            btnContainer.classList.remove('hidden');
+            // Xử lý Filter Tags (Top Bar)
+            const relatedLocs = locations.filter(l => l.type === type);
+            let filterItems = new Set();
+            if (type === 'checkin') { relatedLocs.forEach(l => filterItems.add(l.name)); } 
+            else { relatedLocs.forEach(l => { if(l.tags) l.tags.forEach(t => filterItems.add(t)); }); }
             
-            document.getElementById('route-info').classList.add('hidden'); // Ẩn info cũ đi để vẽ mới
+            const filterTags = document.getElementById('filter-tags');
+            if (filterItems.size > 0) {
+                filterBar.classList.remove('hidden');
+                let html = `<button onclick="window.filterByTag(null)" class="tag-btn active glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20">Tất cả</button>`;
+                filterItems.forEach(item => { html += `<button onclick="window.filterByTag('${item}')" class="tag-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20 text-gray-300 hover:text-white">${item}</button>`; });
+                filterTags.innerHTML = html;
+            } else { filterBar.classList.add('hidden'); }
+
+            if (relatedLocs.length > 0) {
+                const group = new L.featureGroup(markersLayer);
+                map.fitBounds(group.getBounds(), { padding: [50, 50] });
+            }
+        }
+
+        // --- RENDER TOUR SLIDER (BOTTOM CAROUSEL) ---
+        function renderTourSlider() {
+            const slider = document.getElementById('tour-slider');
+            slider.innerHTML = ''; // Clear cũ
+
+            if (tours.length === 0) {
+                slider.classList.add('hidden');
+                return;
+            }
+
+            tours.forEach(tour => {
+                // Lấy ảnh của điểm đầu tiên làm nền
+                let bgImage = "https://via.placeholder.com/200x120?text=Tour";
+                if(tour.points && tour.points.length > 0) {
+                    const firstLoc = locations.find(l => l.id === tour.points[0]);
+                    if(firstLoc && firstLoc.image) bgImage = firstLoc.image;
+                }
+
+                const card = document.createElement('div');
+                card.className = "tour-slide-card";
+                card.onclick = () => {
+                    // Active effect
+                    document.querySelectorAll('.tour-slide-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    window.drawTourRoute(tour.id);
+                };
+
+                card.innerHTML = `
+                    <img src="${bgImage}" class="tour-bg">
+                    <div class="tour-content">
+                        <div class="text-[10px] text-yellow-400 font-bold uppercase tracking-wider mb-0.5">
+                            <i data-lucide="flag" width="10" class="inline"></i> Tour Đề Xuất
+                        </div>
+                        <div class="text-sm font-bold text-white leading-tight mb-1">${tour.name}</div>
+                        <div class="flex items-center gap-2 text-[9px] text-gray-300">
+                            <span>🕒 ${tour.points?.length || 0} điểm</span>
+                            <span>🚗 Sẵn sàng</span>
+                        </div>
+                    </div>
+                `;
+                slider.appendChild(card);
+            });
             lucide.createIcons();
         }
 
-        // --- DRAW TOUR ROUTE (LOGIC VẼ ĐƯỜNG ĐI ĐA ĐIỂM) ---
+        // --- VẼ LỘ TRÌNH TOUR & ĐÁNH SỐ ---
         window.drawTourRoute = async function(tourId) {
             const tour = tours.find(t => t.id === tourId);
             if (!tour || !tour.points || tour.points.length < 2) { showToast("Tour chưa đủ điểm để vẽ!"); return; }
@@ -447,13 +417,36 @@
             loader.classList.remove('hidden');
             window.closePopup();
 
-            // Lấy tọa độ của tất cả các điểm trong tour
+            // Xóa markers cũ, hiển thị markers theo Tour
+            markersLayer.forEach(m => map.removeLayer(m));
+            markersLayer = [];
+            snakeLayers.forEach(l => map.removeLayer(l));
+            snakeLayers = [];
+
             const waypoints = [];
-            tour.points.forEach(pid => {
+            
+            tour.points.forEach((pid, index) => {
                 const loc = locations.find(l => l.id === pid);
-                if (loc) waypoints.push(`${loc.lng},${loc.lat}`);
+                if (loc) {
+                    waypoints.push(`${loc.lng},${loc.lat}`);
+                    
+                    // Marker có số thứ tự
+                    const html = `
+                        <div class="pin-wrapper pin-tour-step">
+                            <div class="pin-teardrop">
+                                <span class="text-white font-bold" style="transform: rotate(45deg)">${index + 1}</span>
+                            </div>
+                            <div class="pin-label">${loc.name}</div>
+                        </div>`;
+                    
+                    const icon = L.divIcon({ className: '', html: html, iconSize: [24, 24], iconAnchor: [12, 30] });
+                    const marker = L.marker([loc.lat, loc.lng], { icon: icon }).addTo(map);
+                    marker.on('click', () => openPopup(loc));
+                    markersLayer.push(marker);
+                }
             });
 
+            // Gọi API OSRM
             const url = `https://router.project-osrm.org/route/v1/driving/${waypoints.join(';')}?overview=full&geometries=geojson`;
 
             try {
@@ -464,131 +457,39 @@
                 const route = data.routes[0];
                 const geometry = route.geometry.coordinates.map(c => [c[1], c[0]]);
                 
-                // Vẽ đường
                 const bgLine = L.polyline(geometry, { color: '#fbbf24', weight: 8, opacity: 0.3, lineJoin: 'round' }).addTo(map);
                 snakeLayers.push(bgLine);
                 const snakeLine = L.polyline(geometry, { color: '#fbbf24', weight: 4, opacity: 1, className: 'snake-road-path' }).addTo(map);
                 snakeLayers.push(snakeLine);
 
-                // Fit map
                 const group = new L.featureGroup(snakeLayers);
-                map.fitBounds(group.getBounds(), { padding: [50, 50] });
+                map.fitBounds(group.getBounds(), { padding: [50, 150] }); // Padding đáy lớn hơn để tránh slider
 
-                // Hiển thị info tổng
                 document.getElementById('loc-distance').innerText = (route.distance/1000).toFixed(1) + " km";
-                document.getElementById('loc-duration').innerText = Math.ceil(route.duration/60) + " phút chạy"; // Chỉ tính thời gian chạy xe
+                document.getElementById('loc-duration').innerText = Math.ceil(route.duration/60) + " phút chạy";
                 document.getElementById('route-info').classList.remove('hidden');
                 document.getElementById('btn-clear-route').classList.remove('hidden');
                 
-                // Hiện popup lại (dạng nhỏ) hoặc Toast
-                showToast(`Đã tải lộ trình: ${tour.name}`);
+                showToast(`Đã tải: ${tour.name}`);
 
             } catch (e) {
                 console.error(e);
-                showToast("Không thể tìm đường đi");
+                showToast("Lỗi vẽ đường");
+                // Fallback: vẽ đường thẳng nếu lỗi
+                const line = L.polyline(waypoints.map(w => w.split(',').reverse()), { color: '#fbbf24', dashArray: '5, 10' }).addTo(map);
+                snakeLayers.push(line);
             } finally {
                 loader.classList.add('hidden');
             }
         }
 
-        // --- CÁC HÀM CŨ GIỮ NGUYÊN (Popups, Filter, Gallery...) ---
-        window.openPopup = function(loc) {
-            window.clearRoute(); 
-            const p = document.getElementById('popup-detail');
-            p.classList.remove('hidden', 'slide-up'); void p.offsetWidth; p.classList.add('slide-up');
-
-            document.getElementById('loc-name').innerText = loc.name;
-            document.getElementById('loc-address').innerText = loc.address || "Đồng Văn, Hà Giang";
-            document.getElementById('loc-desc').innerText = loc.desc || "Đang cập nhật...";
-            document.getElementById('loc-img').src = loc.image || "https://via.placeholder.com/400x200";
-            
-            const menuHtml = (loc.menu || []).slice(0,3).map(i => `<div class="text-[10px] text-slate-300 border-b border-white/5 py-0.5 pl-1">• ${i}</div>`).join('');
-            document.getElementById('loc-menu').innerHTML = menuHtml || '<div class="text-[10px] text-gray-500 italic">Chưa có thông tin dịch vụ</div>';
-            
-            const vipBadge = document.getElementById('vip-badge');
-            if ((loc.score || 0) >= 1000) vipBadge.classList.remove('hidden'); else vipBadge.classList.add('hidden');
-
-            // LOGIC NÚT GALLERY (GIỮ NGUYÊN TỪ PART 1)
-            const btnContainer = document.getElementById('gallery-btn-container');
-            if (loc.type === 'food' || loc.type === 'cafe') {
-                btnContainer.innerHTML = `<button onclick="window.openGallery('${loc.id}', 'menu')" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-1.5 rounded-md font-bold text-[10px] flex items-center justify-center gap-1 shadow border border-orange-400"><i data-lucide="book-open" width="12"></i> XEM MENU</button>`;
-                btnContainer.classList.remove('hidden');
-            } else if (loc.type === 'hotel') {
-                btnContainer.innerHTML = `<button onclick="window.openGallery('${loc.id}', 'room')" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-1.5 rounded-md font-bold text-[10px] flex items-center justify-center gap-1 shadow border border-blue-400"><i data-lucide="image" width="12"></i> XEM ẢNH PHÒNG</button>`;
-                btnContainer.classList.remove('hidden');
-            } else { btnContainer.classList.add('hidden'); }
-            lucide.createIcons();
-
-            const btnMain = document.getElementById('btn-main-contact');
-            if (loc.phone) { btnMain.classList.remove('hidden'); btnMain.onclick = () => window.openContactModal(loc); } 
-            else { btnMain.classList.add('hidden'); }
-
-            const targetLat = loc.lat - 0.0020; map.flyTo([targetLat, loc.lng], 17, { duration: 1 });
-            drawRoadSnake(userPos, {lat: loc.lat, lng: loc.lng});
-        }
-
-        window.openGallery = function(locId, type) {
-            const loc = locations.find(l => l.id === locId);
-            if (!loc) return;
-            const modal = document.getElementById('modal-gallery');
-            const title = document.getElementById('gal-title');
-            const content = document.getElementById('gal-content');
-            title.innerText = type === 'menu' ? "Menu Thực Đơn" : "Hình Ảnh Phòng";
-            content.innerHTML = '';
-            const images = loc.gallery && loc.gallery.length > 0 ? loc.gallery : [loc.image]; 
-            if (images.length > 0 && images[0]) {
-                images.forEach(imgUrl => {
-                    const img = document.createElement('img'); img.src = imgUrl; img.className = "w-full rounded-lg shadow-lg border border-white/20"; content.appendChild(img);
-                });
-            } else { content.innerHTML = '<div class="text-gray-400 italic text-xs mt-10">Chưa có hình ảnh cập nhật.</div>'; }
-            modal.classList.remove('hidden');
-        }
-
-        window.openPopupById = function(id) { const loc = locations.find(l => l.id === id); if(loc) openPopup(loc); }
-        async function drawRoadSnake(start, end) {
-            const loader = document.getElementById('route-loader'); loader.classList.remove('hidden');
-            const routeInfoBox = document.getElementById('route-info');
-            try {
-                const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`);
-                const data = await response.json();
-                if (!data.routes || data.routes.length === 0) throw new Error("No route");
-                const route = data.routes[0];
-                const geometry = route.geometry.coordinates.map(c => [c[1], c[0]]);
-                document.getElementById('loc-distance').innerText = (route.distance > 1000 ? (route.distance/1000).toFixed(1) + " km" : Math.round(route.distance) + " m");
-                document.getElementById('loc-duration').innerText = Math.ceil(route.duration / 60) + " phút";
-                routeInfoBox.classList.remove('hidden');
-                const bgLine = L.polyline(geometry, { color: '#fbbf24', weight: 8, opacity: 0.2, smoothFactor: 2.0, lineJoin: 'round' }).addTo(map); snakeLayers.push(bgLine);
-                const snakeLine = L.polyline(geometry, { color: '#fbbf24', weight: 4, opacity: 1, className: 'snake-road-path', lineCap: 'round', lineJoin: 'round', smoothFactor: 2.0 }).addTo(map); snakeLayers.push(snakeLine);
-                document.getElementById('btn-clear-route').classList.remove('hidden');
-            } catch (e) { 
-                const line = L.polyline([[start.lat, start.lng], [end.lat, end.lng]], { color: '#fbbf24', dashArray: '5, 10' }).addTo(map); snakeLayers.push(line);
-                document.getElementById('loc-distance').innerText = "..."; document.getElementById('loc-duration').innerText = "...";
-            } finally { loader.classList.add('hidden'); }
-        }
-
-        window.closePopup = function() { document.getElementById('popup-detail').classList.add('hidden'); }
-        window.clearRoute = function() { snakeLayers.forEach(l => map.removeLayer(l)); snakeLayers = []; document.getElementById('btn-clear-route').classList.add('hidden'); document.getElementById('route-info').classList.add('hidden'); }
-        window.openContactModal = function(loc) { const m = document.getElementById('modal-contact-choice'); m.classList.remove('hidden'); m.classList.add('flex'); document.getElementById('btn-choice-call').onclick = () => { contactBusiness(loc, 'call'); window.closeContactModal(); }; document.getElementById('btn-choice-zalo').onclick = () => { contactBusiness(loc, 'zalo'); window.closeContactModal(); }; }
-        window.closeContactModal = function() { const m = document.getElementById('modal-contact-choice'); m.classList.add('hidden'); m.classList.remove('flex'); }
-        async function contactBusiness(loc, method) { if (method === 'call') window.location.href = `tel:${loc.phone}`; else if (method === 'zalo') { const cleanPhone = loc.phone.replace(/^0/, '84').replace(/\D/g,''); window.open(`https://zalo.me/${cleanPhone}`, '_blank'); } }
-        
-        window.openCategory = function(type) {
-            currentFilterType = type; currentFilterTag = null; renderMarkers();
-            
-            // Logic hiển thị Filter Bar (Tags)
-            if (type === 'tour') { document.getElementById('filter-bar').classList.add('hidden'); return; } // Tour ko cần tag filter
-
-            const relatedLocs = locations.filter(l => l.type === type);
-            let filterItems = new Set();
-            if (type === 'checkin') { relatedLocs.forEach(l => filterItems.add(l.name)); } else { relatedLocs.forEach(l => { if(l.tags) l.tags.forEach(t => filterItems.add(t)); }); }
-            const filterBar = document.getElementById('filter-bar'); const filterTags = document.getElementById('filter-tags');
-            if (filterItems.size > 0) {
-                filterBar.classList.remove('hidden');
-                let html = `<button onclick="window.filterByTag(null)" class="tag-btn active glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20">Tất cả</button>`;
-                filterItems.forEach(item => { html += `<button onclick="window.filterByTag('${item}')" class="tag-btn glass-panel px-3 py-1 rounded text-[10px] whitespace-nowrap border border-white/20 text-gray-300 hover:text-white">${item}</button>`; });
-                filterTags.innerHTML = html;
-            } else { filterBar.classList.add('hidden'); }
-            if (relatedLocs.length > 0) { const group = new L.featureGroup(markersLayer); map.fitBounds(group.getBounds(), { padding: [50, 50] }); }
+        window.closeFilter = function() {
+            document.getElementById('filter-bar').classList.add('hidden');
+            document.getElementById('tour-slider').classList.add('hidden'); // Ẩn luôn slider
+            window.clearRoute(); // Xóa lộ trình
+            currentFilterType = null; currentFilterTag = null; 
+            renderMarkers(); // Reset markers về bình thường
+            map.setZoom(16);
         }
 
         window.filterByTag = function(tag) {
@@ -611,17 +512,60 @@
             } else { window.openCategory(currentFilterType); }
         }
         
-        window.closeFilter = function() { document.getElementById('filter-bar').classList.add('hidden'); currentFilterType = null; currentFilterTag = null; renderMarkers(); map.setZoom(16); }
         window.toggleGPS = function() { isTracking ? disableTracking("Đã tắt theo dõi") : enableTracking(); }
         function enableTracking() { isTracking = true; lastMapUpdatePos = null; updateGPSBtn(true); map.flyTo([userPos.lat, userPos.lng], 17); showToast("Đang theo dõi vị trí"); }
         function disableTracking(msg) { isTracking = false; updateGPSBtn(false); if(msg) showToast(msg); }
         function updateGPSBtn(active) { const btn = document.getElementById('btn-gps'); active ? btn.classList.add('bg-green-600', 'text-white') : btn.classList.remove('bg-green-600', 'text-white'); }
+        
         window.fitRoute = function() { if(snakeLayers.length > 0) { const group = new L.featureGroup(snakeLayers); group.addLayer(userMarker); map.fitBounds(group.getBounds(), { padding: [50, 50] }); } else { showToast("Chưa có lộ trình"); } }
         window.openRewards = function() { document.getElementById('modal-rewards').classList.remove('hidden'); }
         window.closeRewards = function() { document.getElementById('modal-rewards').classList.add('hidden'); }
         window.checkIn = function() { showToast("Check-in +10 điểm!"); }
         window.loadItinerary = function() { window.openCategory('checkin'); showToast("Đang hiển thị điểm tham quan"); }
         function showToast(msg) { const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = msg; t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000); }
+        
+        // --- UTILS KHÁC (Popup, Contact...) ---
+        window.openPopup = function(loc) {
+            window.clearRoute(); 
+            const p = document.getElementById('popup-detail');
+            p.classList.remove('hidden', 'slide-up'); void p.offsetWidth; p.classList.add('slide-up');
+            document.getElementById('loc-name').innerText = loc.name;
+            document.getElementById('loc-address').innerText = loc.address || "Đồng Văn, Hà Giang";
+            document.getElementById('loc-desc').innerText = loc.desc || "Đang cập nhật...";
+            document.getElementById('loc-img').src = loc.image || "https://via.placeholder.com/400x200";
+            const menuHtml = (loc.menu || []).slice(0,3).map(i => `<div class="text-[10px] text-slate-300 border-b border-white/5 py-0.5 pl-1">• ${i}</div>`).join('');
+            document.getElementById('loc-menu').innerHTML = menuHtml || '<div class="text-[10px] text-gray-500 italic">Chưa có thông tin dịch vụ</div>';
+            const vipBadge = document.getElementById('vip-badge');
+            if ((loc.score || 0) >= 1000) vipBadge.classList.remove('hidden'); else vipBadge.classList.add('hidden');
+            const btnContainer = document.getElementById('gallery-btn-container');
+            if (loc.type === 'food' || loc.type === 'cafe') {
+                btnContainer.innerHTML = `<button onclick="window.openGallery('${loc.id}', 'menu')" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-1.5 rounded-md font-bold text-[10px] flex items-center justify-center gap-1 shadow border border-orange-400"><i data-lucide="book-open" width="12"></i> XEM MENU</button>`;
+                btnContainer.classList.remove('hidden');
+            } else if (loc.type === 'hotel') {
+                btnContainer.innerHTML = `<button onclick="window.openGallery('${loc.id}', 'room')" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-1.5 rounded-md font-bold text-[10px] flex items-center justify-center gap-1 shadow border border-blue-400"><i data-lucide="image" width="12"></i> XEM ẢNH PHÒNG</button>`;
+                btnContainer.classList.remove('hidden');
+            } else { btnContainer.classList.add('hidden'); }
+            lucide.createIcons();
+            const btnMain = document.getElementById('btn-main-contact');
+            if (loc.phone) { btnMain.classList.remove('hidden'); btnMain.onclick = () => window.openContactModal(loc); } 
+            else { btnMain.classList.add('hidden'); }
+            const targetLat = loc.lat - 0.0020; map.flyTo([targetLat, loc.lng], 17, { duration: 1 });
+        }
+        window.openGallery = function(locId, type) {
+            const loc = locations.find(l => l.id === locId); if (!loc) return;
+            const modal = document.getElementById('modal-gallery');
+            const title = document.getElementById('gal-title'); const content = document.getElementById('gal-content');
+            title.innerText = type === 'menu' ? "Menu Thực Đơn" : "Hình Ảnh Phòng";
+            content.innerHTML = '';
+            const images = loc.gallery && loc.gallery.length > 0 ? loc.gallery : [loc.image]; 
+            if (images.length > 0 && images[0]) { images.forEach(imgUrl => { const img = document.createElement('img'); img.src = imgUrl; img.className = "w-full rounded-lg shadow-lg border border-white/20"; content.appendChild(img); }); } else { content.innerHTML = '<div class="text-gray-400 italic text-xs mt-10">Chưa có hình ảnh cập nhật.</div>'; }
+            modal.classList.remove('hidden');
+        }
+        window.openPopupById = function(id) { const loc = locations.find(l => l.id === id); if(loc) openPopup(loc); }
+        window.clearRoute = function() { snakeLayers.forEach(l => map.removeLayer(l)); snakeLayers = []; document.getElementById('btn-clear-route').classList.add('hidden'); document.getElementById('route-info').classList.add('hidden'); }
+        window.openContactModal = function(loc) { const m = document.getElementById('modal-contact-choice'); m.classList.remove('hidden'); m.classList.add('flex'); document.getElementById('btn-choice-call').onclick = () => { contactBusiness(loc, 'call'); window.closeContactModal(); }; document.getElementById('btn-choice-zalo').onclick = () => { contactBusiness(loc, 'zalo'); window.closeContactModal(); }; }
+        window.closeContactModal = function() { const m = document.getElementById('modal-contact-choice'); m.classList.add('hidden'); m.classList.remove('flex'); }
+        async function contactBusiness(loc, method) { if (method === 'call') window.location.href = `tel:${loc.phone}`; else if (method === 'zalo') { const cleanPhone = loc.phone.replace(/^0/, '84').replace(/\D/g,''); window.open(`https://zalo.me/${cleanPhone}`, '_blank'); } }
     </script>
 </body>
 </html>
